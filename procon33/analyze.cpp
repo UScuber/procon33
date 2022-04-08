@@ -1,5 +1,6 @@
 ﻿#include "analyze.hpp"
 
-namespace display {
+namespace audio {
+
 
 };
