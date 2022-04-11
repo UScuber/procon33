@@ -5,58 +5,51 @@
 
 void Main(){
 	const Font font(10);
-	// 音楽
-	Audio audio;
-	// FFT の結果
-	FFTResult fft;
 	// 再生位置の変更の有無
 	bool hasChanged = false;
 	bool is_stopping = false;
 	bool time_changed = false;
-	//const String path = U"C:/users/souta/desktop/proon33/procon33/music/piano.wav";
 
-	Disp::WaveForm form(Dialog::OpenAudio());
-	form.setSize(800, 600);
-	form.setPosition(0, 0);
-	double time = 0;
+	Disp::WaveForm audio(Dialog::OpenAudio());
+	audio.setSize(800, 600);
+	audio.setPosition(0, 0);
+	audio.play();
 	while(System::Update()){
-		form.update(time, font);
-		time += 1.0 / 60;
-		/*
+		audio.update(font);
+
+		ClearPrint();
+		if(!is_stopping || time_changed){
+			audio.update(font, true);
+		}
+		time_changed = false;
+
 		// 再生・演奏時間
 		const String time = FormatTime(SecondsF(audio.posSec()), U"M:ss")
 			+ U'/' + FormatTime(SecondsF(audio.lengthSec()), U"M:ss");
 		// プログレスバーの進み具合
 		double progress = static_cast<double>(audio.posSample()) / audio.samples();
 
-		ClearPrint();
-		if(!is_stopping || time_changed){
-			// FFT 解析
-			FFT::Analyze(fft, audio);
-		}
-		time_changed = false;
 
-		// 結果を可視化
-		Array<std::pair<double,int>> loudness(800);
-		for(int i = 0; i < 800; i++){
-			const double size = Pow(fft.buffer[i], 0.6f) * 1000;
-			RectF(Arg::bottomLeft(i, 480), 1, size).draw(Color(0,100,255));
-			loudness[i] = { size, i };
-		}
-		std::sort(loudness.rbegin(), loudness.rend());
-		constexpr int select_num = 5;
-		for(int i = 0; i < Min(select_num, (int)loudness.size()); i++){
-			const double size = loudness[i].first;
-			const int posx = loudness[i].second;
-			font(U"{}"_fmt(i+1)).draw(posx, 470 - size);
-		}
-		// 目盛りの表示
-		for(int i = 0; i < 800; i += 40){
-			font(U"{}"_fmt((int)(fft.resolution * i))).draw(i, 480);
-		}
 		// 周波数表示
 		Rect(Cursor::Pos().x, 0, 1, Scene::Height()).draw();
-		Print << U"{} Hz"_fmt(Cursor::Pos().x * fft.resolution);
+		Print << U"{} Hz"_fmt(Cursor::Pos().x * audio.fft.resolution);
+		double loud = -1, hz = -1;
+		for(int i = 0; ; i++){
+			const double size = Pow(audio.fft.buffer[i], 0.6f) * 1000;
+			const double pos = i * audio.fft.resolution;
+			if(loud < size){
+				loud = size;
+				hz = pos;
+			}
+			if(pos > 400.0) break;
+		}
+		if(hz > 0){
+			double pos = hz / audio.fft.resolution;
+			for(double freq = hz; pos < 800; freq += hz){
+				pos = freq / audio.fft.resolution;
+				RectF(Arg::bottomLeft(pos, 480), 1, Scene::Height()).draw(Palette::Gray);
+			}
+		}
 
 		// Start, Pause Button
 		const String button_name = audio.isPlaying() ? U"Pause" : U"Play";
@@ -86,11 +79,11 @@ void Main(){
 		}
 		// slider 3s
 		if(KeyLeft.down()){
-			audio.seekTime(audio.posSec() - 3);
+			audio.seekTime(audio.posSec() - 1);
 			time_changed = true;
 		}
 		if(KeyRight.down()){
-			audio.seekTime(audio.posSec() + 3);
+			audio.seekTime(audio.posSec() + 1);
 			time_changed = true;
 		}
 		// スライダー
@@ -106,6 +99,5 @@ void Main(){
 			if(!is_stopping) audio.play();
 			hasChanged = false;
 		}
-		*/
 	}
 }

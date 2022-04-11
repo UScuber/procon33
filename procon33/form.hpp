@@ -3,11 +3,11 @@
 
 namespace Disp {
 
-struct WaveForm {
-	Audio audio;
+struct WaveForm : Audio {
+	//Audio audio;
 	FFTResult fft;
-	int height, width;
-	Vec2 position{ -1, -1 };
+	int height = -1, width = -1;
+	Vec2 dpos{ -1, -1 };
 
 	WaveForm(Audio &&audio);
 
@@ -18,8 +18,8 @@ struct WaveForm {
 	// 左上の位置を指定
 	void setPosition(int x, int y);
 	// 
-	void update(const double &time, const Font &font);
+	void update(const Font &font, bool force_update = false);
 };
 
 
-};
+}; // namespace Disp
