@@ -13,7 +13,16 @@ void Main(){
 	bool hasChanged = false;
 	bool is_stopping = false;
 	bool time_changed = false;
+	//const String path = U"C:/users/souta/desktop/proon33/procon33/music/piano.wav";
+
+	Disp::WaveForm form(Dialog::OpenAudio());
+	form.setSize(800, 600);
+	form.setPosition(0, 0);
+	double time = 0;
 	while(System::Update()){
+		form.update(time, font);
+		time += 1.0 / 60;
+		/*
 		// 再生・演奏時間
 		const String time = FormatTime(SecondsF(audio.posSec()), U"M:ss")
 			+ U'/' + FormatTime(SecondsF(audio.lengthSec()), U"M:ss");
@@ -97,5 +106,6 @@ void Main(){
 			if(!is_stopping) audio.play();
 			hasChanged = false;
 		}
+		*/
 	}
 }
