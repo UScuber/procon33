@@ -5,7 +5,7 @@ using uint = unsigned int;
 using namespace std;
 
 constexpr int n = 44; //candidate arrays
-constexpr int m = 15; //select num
+constexpr int m = 10; //select num
 constexpr int fps = 30;
 constexpr int tot_time = 5;
 constexpr int tot_frame = fps * tot_time;
@@ -14,13 +14,14 @@ constexpr int ans_length = tot_frame * 2;
 
 constexpr double limit_time = 20.0;
 
-vector<vector<int>> arrays[n];
-vector<vector<int>> problem;
+using Val_Type = int;
+
+vector<vector<Val_Type>> arrays[n];
+vector<vector<Val_Type>> problem;
 int answer_idx[m];
 int answer_pos[m];
 
-// libraries
-uint randxor(){
+inline uint randxor(){
   static uint x = rand() | rand() << 16;
   static uint y = rand() | rand() << 16;
   static uint z = rand() | rand() << 16;
@@ -34,10 +35,9 @@ inline int rnd(const int &l, const int &r){
   return randxor() % (r - l) + l;
 }
 const double PI = acos(-1);
-vector<int> make_rnd_array(int n){
+vector<Val_Type> make_rnd_array(int n){
   const int first_hz = rnd(5, 10);
-  vector<int> res(n);
-  //rep(i, n) res[i] = randxor() >> 12;
+  vector<Val_Type> res(n);
   rep(i, n){
     double arc = cos(PI * i / first_hz) * 30;
     arc *= arc;
@@ -45,25 +45,25 @@ vector<int> make_rnd_array(int n){
   }
   return res;
 }
-inline void add(vector<int> &a, const vector<int> &b){
+inline void add(vector<Val_Type> &a, const vector<Val_Type> &b){
   assert(b.size() <= a.size());
   rep(i, b.size()) a[i] += b[i];
 }
-inline void sub(vector<int> &a, const vector<int> &b){
+inline void sub(vector<Val_Type> &a, const vector<Val_Type> &b){
   assert(b.size() <= a.size());
   rep(i, b.size()) a[i] -= b[i];
 }
 
 // problemから数字を引いたやつのスコアを計算する
-ll calc_score(const vector<vector<int>> &a){
-  double score = 0;
+ll calc_score(const vector<vector<Val_Type>> &a){
+  Val_Type score = 0;
   rep(i, a.size()){
-    ll tot = 0;
+    Val_Type tot = 0;
     rep(j, a[0].size()){
       //tot += a[i][j] * a[i][j];
       tot += abs(a[i][j]);
     }
-    score += (double)tot / a.size();
+    score += tot;
   }
   return score;
 }
@@ -97,7 +97,7 @@ void init(){
     answer_idx[i] = ran;
     used[ran] = 1;
   }
-  problem.assign(ans_length, vector<int>(dhz));
+  problem.assign(ans_length, vector<Val_Type>(dhz));
   rep(i, m){
     assert(0 <= answer_idx[i] && answer_idx[i] < n);
     const int pos = rnd(0, tot_frame);
