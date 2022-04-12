@@ -11,7 +11,7 @@ void Main(){
 	bool time_changed = false;
 
 	Disp::WaveForm audio(Dialog::OpenAudio());
-	audio.setSize(800, 600);
+	audio.setSize(800, 500);
 	audio.setPosition(0, 0);
 	audio.play();
 	while(System::Update()){
@@ -100,4 +100,19 @@ void Main(){
 			hasChanged = false;
 		}
 	}
+	/*
+	Audio audio = Dialog::OpenAudio();
+	TextWriter writer(U"../music/array11.txt");
+	FFTResult fft;
+	for(int i = 0; i < 5*30; i++){
+		audio.seekTime(i / 30.0);
+		FFT::Analyze(fft, audio);
+		for(int j = 0; j < 600; j++){
+			const double size = Pow(fft.buffer[j], 0.6) * 1000 / 4;
+			writer.write((int)size);
+			writer.write(U" ");
+		}
+		writer.writeln(U"");
+	}
+	*/
 }
