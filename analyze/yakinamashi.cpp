@@ -4,15 +4,17 @@ using ll = long long;
 using uint = unsigned int;
 using namespace std;
 
+constexpr int inf = 1000000000;
+
 constexpr int n = 44; //candidate arrays
-constexpr int m = 20; //select num
+constexpr int m = 10; //select num
 constexpr int fps = 30;
 constexpr int tot_time = 5;
 constexpr int tot_frame = fps * tot_time;
 constexpr int dhz = 600;
 constexpr int ans_length = tot_frame * 2;
 
-constexpr double limit_time = 40.0;
+constexpr double limit_time = 3.0;
 
 using Val_Type = int;
 
@@ -126,16 +128,16 @@ void solve(){
   cerr << "First Score: " << best_score << "\n";
 
   int update_num = 0;
-  double last_upd_time = -1;
   int steps = 0;
 
-  double spend_time = clock();
+  double start_temp = 7000000;
+  double end_temp =   900000;
+  double spend_time = 0;
   const clock_t start_time = clock();
-  // 山登り法
+  //
   for(; ; steps++){
-    constexpr int mask = (1 << 8) - 1;
+    constexpr int mask = (1 << 7) - 1;
     if(!(steps & mask)){
-      const clock_t end_time = clock();
       spend_time = clock() - start_time;
       spend_time /= CLOCKS_PER_SEC;
       if(spend_time > limit_time) break;
@@ -172,15 +174,20 @@ void solve(){
     }
 
     const ll score = calc_selected_ans(best_select_idx, best_pos);
-    if(score < best_score){
+    const double temp = start_temp + (end_temp - start_temp) * spend_time / limit_time;
+    const double v = (best_score - score) / temp;
+    const double prob = exp(v);
+    if(best_score < score){
+      cerr << prob << " ";
+    }
+    if(prob > (double)rnd(0, inf) / inf){
       best_score = score;
       if(t == 1){
         used_idx[tmp_idx]--;
         used_idx[nxt_idx]++;
       }
-      cerr << "u";
+      //cerr << "upd";
       update_num++;
-      last_upd_time = spend_time;
       if(best_score == 0) break;
     }else{
       best_select_idx[idx] = tmp_idx;
@@ -190,7 +197,6 @@ void solve(){
   cerr << "\n";
   cerr << "Steps: " << steps << "\n";
   cerr << "Updated: " << update_num << "\n";
-  cerr << "Last Update: " << last_upd_time << "\n";
   cerr << "Final Score: " << best_score << "\n";
 
   // output result
@@ -225,7 +231,6 @@ int main(){
   }
   solve();
 
-  /*
   cout << "\n";
   rep(i, tot_frame){
     rep(j, dhz){
@@ -233,5 +238,4 @@ int main(){
     }
     cout << "\n";
   }
-  */
 }

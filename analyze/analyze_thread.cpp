@@ -1,8 +1,13 @@
 #include <bits/stdc++.h>
+#include <thread>
+#include <future>
 #define rep(i, n) for(int i = 0; i < (n); i++)
 using ll = long long;
 using uint = unsigned int;
 using namespace std;
+
+constexpr int inf = numeric_limits<int>::max();
+constexpr ll infl = numeric_limits<ll>::max();
 
 constexpr int n = 44; //candidate arrays
 constexpr int m = 20; //select num
@@ -112,11 +117,76 @@ void init(){
   cout << "\n";
 }
 
+namespace solver {
+
+struct RndInfo {
+  int idx,pos, nxt_idx;
+};
+
+constexpr int thread_num = 10;
+constexpr int tasks_num = 2;
+
+int best_pos[m] = {};
+int best_select_idx[m];
+int used_idx[n] = {};
+
+RndInfo random_array[thread_num][m];
+
+inline RndInfo rnd_create(){
+  const int t = rnd(0, 10) >= 2;
+  RndInfo change{ -1,-1,-1 };
+  // select wav and change pos
+  if(t == 0){
+    change.idx = rnd(0, m);
+    change.nxt_idx = best_select_idx[change.idx];
+    change.pos = rnd(0, tot_frame);
+  }
+  // select other wav and swap and change pos
+  else{
+    change.idx = rnd(0, m);
+    change.nxt_idx = rnd(0, n);
+    while(used_idx[change.nxt_idx]) change.nxt_idx = rnd(0, n);
+    change.pos = rnd(0, tot_frame);
+  }
+  return change;
+}
+
+void create_rndinfo(RndInfo ran[tasks_num]){
+  rep(i, tasks_num){
+    ran[i] = rnd_create();
+  }
+}
+
+// 一番いいデータbest_*から推測
+ll calc_one_changed_ans(const RndInfo &info){
+  auto temp = problem;
+  rep(i, m) if(info.idx != i){
+    rep(j, tot_frame){
+      sub(temp[j + best_pos[i]], arrays[best_select_idx[i]][j]);
+    }
+  }
+  rep(i, tot_frame){
+    sub(temp[i + info.pos], arrays[info.nxt_idx][i]);
+  }
+  return calc_score(temp);
+}
+
+pair<ll, RndInfo> solve_one_thread(const RndInfo ran[tasks_num]){
+  ll best_score = infl;
+  RndInfo best_change{ -1,-1,-1 };
+  rep(i, tasks_num){
+    const ll score = calc_one_changed_ans(ran[i]);
+    if(best_score > score){
+      best_score = score;
+      best_change = ran[i];
+    }
+  }
+  assert(best_change.idx != -1);
+  return { best_score, best_change };
+}
+
 void solve(){
   // 適当にはじめは値を入れておく
-  int best_pos[m] = {};
-  int best_select_idx[m];
-  int used_idx[n] = {};
   rep(i, m){
     best_select_idx[i] = i;
     used_idx[i] = 1;
@@ -129,62 +199,72 @@ void solve(){
   double last_upd_time = -1;
   int steps = 0;
 
-  double spend_time = clock();
+  double spend_time = 0;
   const clock_t start_time = clock();
-  // 山登り法
+  // 山登り法(single thread)
+  cerr << "Start Single Thread\n";
   for(; ; steps++){
-    constexpr int mask = (1 << 8) - 1;
+    constexpr int mask = (1 << 5) - 1;
     if(!(steps & mask)){
+      const clock_t end_time = clock();
+      spend_time = clock() - start_time;
+      spend_time /= CLOCKS_PER_SEC;
+      if(spend_time > limit_time*2/3) break;
+    }
+    RndInfo change = rnd_create();
+    const ll score = calc_one_changed_ans(change);
+    if(best_score > score){
+      best_score = score;
+      // 値の更新
+      used_idx[best_select_idx[change.idx]]--;
+      used_idx[change.nxt_idx]++;
+      best_select_idx[change.idx] = change.nxt_idx;
+      best_pos[change.idx] = change.pos;
+      cerr << "u";
+      update_num++;
+      last_upd_time = spend_time;
+    }
+  }
+  cerr << "\n";
+  cerr << "Start Multi Thread\n";
+  // 山登り法(multi thread)
+  for(; ; steps += thread_num * tasks_num){
+    {
       const clock_t end_time = clock();
       spend_time = clock() - start_time;
       spend_time /= CLOCKS_PER_SEC;
       if(spend_time > limit_time) break;
     }
-    const int t = rnd(0, 10) >= 2;
-    int idx = -1, pos, nxt_idx = -1;
-    // select wav and change pos
-    if(t == 0){
-      idx = rnd(0, m);
-      pos = rnd(0, tot_frame);
+    future<pair<ll, RndInfo>> threads[thread_num];
+    RndInfo rnd_arrays[thread_num][tasks_num];
+    rep(i, thread_num){
+      create_rndinfo(rnd_arrays[i]);
+      threads[i] = async(solve_one_thread, rnd_arrays[i]);
     }
-    // select other wav and swap and change pos
-    else{
-      idx = rnd(0, m);
-      nxt_idx = rnd(0, n);
-      if(used_idx[nxt_idx]){
-        steps--;
-        continue;
+    RndInfo best_change{ -1,-1,-1 };
+    ll good_score = infl;
+    rep(i, thread_num){
+      ll score = infl;
+      RndInfo res;
+      tie(score, res) = threads[i].get();
+      if(good_score > score){
+        good_score = score;
+        best_change = res;
       }
-      pos = rnd(0, tot_frame);
     }
-    assert(idx != -1);
+    assert(best_change.idx != -1);
     // 更新できなかった時に復元する
-    const int tmp_idx = best_select_idx[idx];
-    const int tmp_pos = best_pos[idx];
-
-    // 値の仮代入
-    if(t == 0){
-      best_pos[idx] = pos;
-    }
-    else if(t == 1){
-      best_select_idx[idx] = nxt_idx;
-      best_pos[idx] = pos;
-    }
-
-    const ll score = calc_selected_ans(best_select_idx, best_pos);
-    if(score < best_score){
-      best_score = score;
-      if(t == 1){
-        used_idx[tmp_idx]--;
-        used_idx[nxt_idx]++;
-      }
+    //const ll score = calc_selected_ans(best_select_idx, best_pos);
+    if(good_score < best_score){
+      best_score = good_score;
+      // 値の更新
+      used_idx[best_select_idx[best_change.idx]]--;
+      used_idx[best_change.nxt_idx]++;
+      best_select_idx[best_change.idx] = best_change.nxt_idx;
+      best_pos[best_change.idx] = best_change.pos;
       cerr << "u";
       update_num++;
       last_upd_time = spend_time;
-      if(best_score == 0) break;
-    }else{
-      best_select_idx[idx] = tmp_idx;
-      best_pos[idx] = tmp_pos;
     }
   }
   cerr << "\n";
@@ -211,6 +291,8 @@ void solve(){
   cerr << "Diff: " << diff_num << "/" << m << "\n";
 }
 
+}; // namespace solver
+
 
 int main(){
   srand(time(NULL));
@@ -223,15 +305,5 @@ int main(){
       problem[i][j] = rnd(7,14)/10.0 * problem[i][j];
     }
   }
-  solve();
-
-  /*
-  cout << "\n";
-  rep(i, tot_frame){
-    rep(j, dhz){
-      cout << arrays[0][i][j] << " ";
-    }
-    cout << "\n";
-  }
-  */
+  solver::solve();
 }
