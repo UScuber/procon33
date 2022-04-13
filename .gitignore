@@ -1,4 +1,5 @@
 .vs
+.vscode
 Intermediate/
 procon33.sln
 procon33/.editorconfig
@@ -6,5 +7,6 @@ procon33/App/
 procon33.*
 procon33/music/joumou.wav
 
+analyze/in.txt
 analyze/out.txt
 analyze/a.exe
