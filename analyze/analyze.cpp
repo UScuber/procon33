@@ -1,72 +1,16 @@
-#include <bits/stdc++.h>
-#define rep(i, n) for(int i = 0; i < (n); i++)
-using ll = long long;
-using uint = unsigned int;
+#include "library.hpp"
 using namespace std;
-
-constexpr int n = 44; //candidate arrays
-constexpr int m = 20; //select num
-constexpr int fps = 30;
-constexpr int tot_time = 5;
-constexpr int tot_frame = fps * tot_time;
-constexpr int dhz = 600;
-constexpr int ans_length = tot_frame * 2;
 
 constexpr double limit_time = 40.0;
 
-using Val_Type = int;
+#define isTestCase
+
 
 vector<vector<Val_Type>> arrays[n];
-vector<vector<Val_Type>> problem;
+vector<vector<Val_Type>> problem(ans_length, vector<Val_Type>(dhz));
 int answer_idx[m];
 int answer_pos[m];
 
-inline uint randxor(){
-  static uint x = rand() | rand() << 16;
-  static uint y = rand() | rand() << 16;
-  static uint z = rand() | rand() << 16;
-  static uint w = rand() | rand() << 16;
-  //static uint x=123456789,y=362436069,z=521288629,w=88675123;
-  uint t;
-  t=(x^(x<<11));x=y;y=z;z=w; return( w=(w^(w>>19))^(t^(t>>8)) );
-}
-// returns random [l, r)
-inline int rnd(const int &l, const int &r){
-  return randxor() % (r - l) + l;
-}
-const double PI = acos(-1);
-vector<Val_Type> make_rnd_array(int n){
-  const int first_hz = rnd(5, 10);
-  vector<Val_Type> res(n);
-  rep(i, n){
-    double arc = cos(PI * i / first_hz) * 30;
-    arc *= arc;
-    res[i] = arc * rnd(7, 14)/10.0;
-  }
-  return res;
-}
-inline void add(vector<Val_Type> &a, const vector<Val_Type> &b){
-  assert(b.size() <= a.size());
-  rep(i, b.size()) a[i] += b[i];
-}
-inline void sub(vector<Val_Type> &a, const vector<Val_Type> &b){
-  assert(b.size() <= a.size());
-  rep(i, b.size()) a[i] -= b[i];
-}
-
-// problemから数字を引いたやつのスコアを計算する
-ll calc_score(const vector<vector<Val_Type>> &a){
-  Val_Type score = 0;
-  rep(i, a.size()){
-    Val_Type tot = 0;
-    rep(j, a[0].size()){
-      //tot += a[i][j] * a[i][j];
-      tot += abs(a[i][j]);
-    }
-    score += tot;
-  }
-  return score;
-}
 
 // 答えと仮定したやつを引いて、計算する
 ll calc_selected_ans(const int ans[m], const int pos[m]){
@@ -80,34 +24,18 @@ ll calc_selected_ans(const int ans[m], const int pos[m]){
 }
 
 void init(){
-  static_assert(m <= n);
-  rep(i, n){
-    arrays[i].resize(tot_frame);
-    rep(j, tot_frame){
-      arrays[i][j] = make_rnd_array(dhz);
-    }
-  }
-  // make answer_idx
-  int used[n] = {};
+  TestCase::make_random(arrays, problem, answer_idx, answer_pos);
+  // output answer_idx
   rep(i, m){
-    int ran = rnd(0, n);
-    if(used[ran]){
-      i--; continue;
-    }
-    answer_idx[i] = ran;
-    used[ran] = 1;
+    cout << answer_idx[i] << " " << answer_pos[i] << "\n";
   }
-  problem.assign(ans_length, vector<Val_Type>(dhz));
+  cout << "\n";
+}
+void read(){
+  File::read_values(arrays, problem, answer_idx, answer_pos, cin);
+  // output answer_idx, pos
   rep(i, m){
-    assert(0 <= answer_idx[i] && answer_idx[i] < n);
-    const int pos = rnd(0, tot_frame);
-    rep(j, tot_frame){
-      add(problem[j + pos], arrays[answer_idx[i]][j]);
-    }
-    answer_pos[i] = pos;
-
-    // output answer_idx
-    cout << answer_idx[i] << " " << pos << "\n";
+    cout << answer_idx[i] << " " << answer_pos[i] << "\n";
   }
   cout << "\n";
 }
@@ -214,24 +142,12 @@ void solve(){
 
 int main(){
   srand(time(NULL));
-  init();
-  // ランダムに値をずらす
-  rep(i, ans_length){
-    rep(j, dhz){
-      const int t = rnd(0, 2);
-      if(t) continue;
-      problem[i][j] = rnd(7,14)/10.0 * problem[i][j];
-    }
-  }
+  cin.tie(nullptr);
+  ios::sync_with_stdio(false);
+  #ifdef isTestCase
+    read();
+  #else
+    init();
+  #endif
   solve();
-
-  /*
-  cout << "\n";
-  rep(i, tot_frame){
-    rep(j, dhz){
-      cout << arrays[0][i][j] << " ";
-    }
-    cout << "\n";
-  }
-  */
 }
