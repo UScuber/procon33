@@ -16,7 +16,7 @@ constexpr ll infl = std::numeric_limits<ll>::max();
 constexpr int n = 44; //candidate arrays
 constexpr int m = 20; //select num
 constexpr int fps = 30;
-constexpr int tot_time = 7;
+constexpr int tot_time = 10;
 constexpr int tot_frame = fps * tot_time;
 constexpr int dhz = 600;
 constexpr int ans_length = tot_frame * 2;
@@ -25,6 +25,8 @@ const double PI = acos(-1);
 
 // 数列の値の型
 using Val_Type = int;
+
+vector<vector<Val_Type>> arrays[n];
 
 
 inline uint randxor() noexcept{
@@ -136,3 +138,66 @@ void make_random(vector<vector<Val_Type>> arrays[n], vector<vector<Val_Type>> &p
 }
 
 }; // namespace TestCase
+
+namespace solver {
+
+struct RndInfo {
+  int idx,pos, nxt_idx;
+};
+
+int best_pos[m] = {};
+int best_select_idx[m];
+int used_idx[n] = {};
+vector<vector<Val_Type>> best_sub(ans_length, vector<Val_Type>(dhz));
+
+inline RndInfo rnd_create(){
+  const int t = rnd(0, 10) >= 2;
+  RndInfo change{ -1,-1,-1 };
+  // select wav and change pos
+  if(t == 0){
+    change.idx = rnd(0, m);
+    change.nxt_idx = best_select_idx[change.idx];
+    change.pos = rnd(0, tot_frame);
+  }
+  // select other wav and swap and change pos
+  else{
+    change.idx = rnd(0, m);
+    change.nxt_idx = rnd(0, n);
+    while(used_idx[change.nxt_idx]) change.nxt_idx = rnd(0, n);
+    change.pos = rnd(0, tot_frame);
+  }
+  return change;
+}
+
+ll calc_one_changed_ans(const RndInfo &info){
+  auto temp = best_sub;
+  const int pre_pos = best_pos[info.idx];
+  const int pre_idx = best_select_idx[info.idx];
+  rep(i, tot_frame){
+    add(temp[i + pre_pos], arrays[pre_idx][i]);
+  }
+  rep(i, tot_frame){
+    sub(temp[i + info.pos], arrays[info.nxt_idx][i]);
+  }
+  return calc_score(temp);
+}
+
+
+void update_values(const RndInfo &info){
+  const int pre_pos = best_pos[info.idx];
+  const int pre_idx = best_select_idx[info.idx];
+  // update best_sub
+  rep(i, tot_frame){
+    add(best_sub[i + pre_pos], arrays[pre_idx][i]);
+  }
+  rep(i, tot_frame){
+    sub(best_sub[i + info.pos], arrays[info.nxt_idx][i]);
+  }
+  // update info
+  used_idx[best_select_idx[info.idx]]--;
+  used_idx[info.nxt_idx]++;
+  best_select_idx[info.idx] = info.nxt_idx;
+  best_pos[info.idx] = info.pos;
+}
+
+}; // namespace solver

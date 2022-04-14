@@ -1,7 +1,6 @@
 #include "library.hpp"
 using namespace std;
 
-vector<vector<Val_Type>> arrays[n];
 vector<vector<Val_Type>> problem(ans_length, vector<Val_Type>(dhz));
 int answer_idx[m];
 int answer_pos[m];

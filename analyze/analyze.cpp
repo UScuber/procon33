@@ -1,12 +1,11 @@
 #include "library.hpp"
 using namespace std;
 
-constexpr double limit_time = 40.0;
+constexpr double limit_time = 30.0;
 
 #define isTestCase
 
 
-vector<vector<Val_Type>> arrays[n];
 vector<vector<Val_Type>> problem(ans_length, vector<Val_Type>(dhz));
 int answer_idx[m];
 int answer_pos[m];
@@ -40,16 +39,20 @@ void read(){
   cout << "\n";
 }
 
+namespace solver {
+
 void solve(){
-  // 適当にはじめは値を入れておく
-  int best_pos[m] = {};
-  int best_select_idx[m];
-  int used_idx[n] = {};
+  best_sub = problem;
+  // 最初は適当に値を入れておく
   rep(i, m){
     best_select_idx[i] = i;
     used_idx[i] = 1;
+    // best_subの計算
+    rep(j, tot_frame){
+      sub(best_sub[j], arrays[i][j]);
+    }
   }
-  ll best_score = calc_selected_ans(best_select_idx, best_pos);
+  ll best_score = calc_score(best_sub);
   
   cerr << "First Score: " << best_score << "\n";
 
@@ -57,68 +60,31 @@ void solve(){
   double last_upd_time = -1;
   int steps = 0;
 
-  double spend_time = clock();
+  double spend_time = 0;
   const clock_t start_time = clock();
   // 山登り法
   for(; ; steps++){
-    constexpr int mask = (1 << 8) - 1;
+    constexpr int mask = (1 << 7) - 1;
     if(!(steps & mask)){
-      const clock_t end_time = clock();
       spend_time = clock() - start_time;
       spend_time /= CLOCKS_PER_SEC;
       if(spend_time > limit_time) break;
     }
-    const int t = rnd(0, 10) >= 2;
-    int idx = -1, pos, nxt_idx = -1;
-    // select wav and change pos
-    if(t == 0){
-      idx = rnd(0, m);
-      pos = rnd(0, tot_frame);
-    }
-    // select other wav and swap and change pos
-    else{
-      idx = rnd(0, m);
-      nxt_idx = rnd(0, n);
-      if(used_idx[nxt_idx]){
-        steps--;
-        continue;
-      }
-      pos = rnd(0, tot_frame);
-    }
-    assert(idx != -1);
-    // 更新できなかった時に復元する
-    const int tmp_idx = best_select_idx[idx];
-    const int tmp_pos = best_pos[idx];
-
-    // 値の仮代入
-    if(t == 0){
-      best_pos[idx] = pos;
-    }
-    else if(t == 1){
-      best_select_idx[idx] = nxt_idx;
-      best_pos[idx] = pos;
-    }
-
-    const ll score = calc_selected_ans(best_select_idx, best_pos);
-    if(score < best_score){
+    RndInfo change = rnd_create();
+    const ll score = calc_one_changed_ans(change);
+    if(best_score > score){
       best_score = score;
-      if(t == 1){
-        used_idx[tmp_idx]--;
-        used_idx[nxt_idx]++;
-      }
+      update_values(change);
       cerr << "u";
       update_num++;
       last_upd_time = spend_time;
-      if(best_score == 0) break;
-    }else{
-      best_select_idx[idx] = tmp_idx;
-      best_pos[idx] = tmp_pos;
     }
   }
   cerr << "\n";
   cerr << "Steps: " << steps << "\n";
   cerr << "Updated: " << update_num << "\n";
   cerr << "Last Update: " << last_upd_time << "\n";
+  cerr << "Time per loop: " << spend_time/steps << "\n";
   cerr << "Final Score: " << best_score << "\n";
 
   // output result
@@ -139,6 +105,8 @@ void solve(){
   cerr << "Diff: " << diff_num << "/" << m << "\n";
 }
 
+}; // namespace solver
+
 
 int main(){
   srand(time(NULL));
@@ -149,5 +117,5 @@ int main(){
   #else
     init();
   #endif
-  solve();
+  solver::solve();
 }
