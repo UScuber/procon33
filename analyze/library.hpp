@@ -13,7 +13,7 @@ using std::vector;
 constexpr int inf = std::numeric_limits<int>::max();
 constexpr ll infl = std::numeric_limits<ll>::max();
 
-constexpr int n = 44; //candidate arrays
+constexpr int n = 44*2; //candidate arrays
 constexpr int m = 20; //select num
 constexpr int fps = 30;
 constexpr int tot_time = 10;
@@ -27,6 +27,9 @@ const double PI = acos(-1);
 using Val_Type = int;
 
 vector<vector<Val_Type>> arrays[n];
+vector<vector<Val_Type>> problem(ans_length, vector<Val_Type>(dhz));
+int answer_idx[m];
+int answer_pos[m];
 
 
 inline uint randxor() noexcept{
@@ -80,8 +83,7 @@ ll calc_score(const vector<vector<Val_Type>> &a) noexcept{
 
 namespace File {
 
-void read_values(vector<vector<Val_Type>> arrays[n], vector<vector<Val_Type>> &problem,
-                int answer_idx[m], int answer_pos[m], std::istream &is){
+void read_values(std::istream &is){
   assert(problem.size() == ans_length);
   rep(i, n){
     arrays[i].assign(tot_frame, vector<Val_Type>(dhz));
@@ -98,46 +100,6 @@ void read_values(vector<vector<Val_Type>> arrays[n], vector<vector<Val_Type>> &p
 
 }; // namespace File
 
-namespace TestCase {
-
-void make_random(vector<vector<Val_Type>> arrays[n], vector<vector<Val_Type>> &problem,
-                int answer_idx[m], int answer_pos[m]){
-  assert(problem.size() == ans_length);
-  rep(i, n){
-    arrays[i].resize(tot_frame);
-    rep(j, tot_frame){
-      arrays[i][j] = make_rnd_array(dhz);
-    }
-  }
-  // make answer_idx
-  int used[n] = {};
-  rep(i, m){
-    const int ran = rnd(0, n);
-    if(used[ran]){
-      i--; continue;
-    }
-    answer_idx[i] = ran;
-    used[ran] = 1;
-  }
-  rep(i, m){
-    assert(0 <= answer_idx[i] && answer_idx[i] < n);
-    const int pos = rnd(0, tot_frame);
-    rep(j, tot_frame){
-      add(problem[j + pos], arrays[answer_idx[i]][j]);
-    }
-    answer_pos[i] = pos;
-  }
-  // ランダムに値をずらす
-  rep(i, ans_length){
-    rep(j, dhz){
-      const int t = rnd(0, 2);
-      if(t) continue;
-      problem[i][j] = rnd(7,14)/10.0 * problem[i][j];
-    }
-  }
-}
-
-}; // namespace TestCase
 
 namespace solver {
 
@@ -150,7 +112,7 @@ int best_select_idx[m];
 int used_idx[n] = {};
 vector<vector<Val_Type>> best_sub(ans_length, vector<Val_Type>(dhz));
 
-inline RndInfo rnd_create(){
+inline RndInfo rnd_create() noexcept{
   const int t = rnd(0, 10) >= 2;
   RndInfo change{ -1,-1,-1 };
   // select wav and change pos
@@ -169,7 +131,7 @@ inline RndInfo rnd_create(){
   return change;
 }
 
-ll calc_one_changed_ans(const RndInfo &info){
+ll calc_one_changed_ans(const RndInfo &info) noexcept{
   auto temp = best_sub;
   const int pre_pos = best_pos[info.idx];
   const int pre_idx = best_select_idx[info.idx];

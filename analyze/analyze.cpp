@@ -1,37 +1,11 @@
 #include "library.hpp"
 using namespace std;
 
-constexpr double limit_time = 30.0;
-
-#define isTestCase
+constexpr double limit_time = 60.0;
 
 
-vector<vector<Val_Type>> problem(ans_length, vector<Val_Type>(dhz));
-int answer_idx[m];
-int answer_pos[m];
-
-
-// 答えと仮定したやつを引いて、計算する
-ll calc_selected_ans(const int ans[m], const int pos[m]){
-  auto temp = problem;
-  rep(i, m){
-    rep(j, tot_frame){
-      sub(temp[j + pos[i]], arrays[ans[i]][j]);
-    }
-  }
-  return calc_score(temp);
-}
-
-void init(){
-  TestCase::make_random(arrays, problem, answer_idx, answer_pos);
-  // output answer_idx
-  rep(i, m){
-    cout << answer_idx[i] << " " << answer_pos[i] << "\n";
-  }
-  cout << "\n";
-}
 void read(){
-  File::read_values(arrays, problem, answer_idx, answer_pos, cin);
+  File::read_values(cin);
   // output answer_idx, pos
   rep(i, m){
     cout << answer_idx[i] << " " << answer_pos[i] << "\n";
@@ -112,10 +86,8 @@ int main(){
   srand(time(NULL));
   cin.tie(nullptr);
   ios::sync_with_stdio(false);
-  #ifdef isTestCase
-    read();
-  #else
-    init();
-  #endif
+
+  read();
+
   solver::solve();
 }

@@ -3,25 +3,11 @@
 #include "library.hpp"
 using namespace std;
 
-constexpr double limit_time = 30.0;
-
-#define isTestCase
-
-vector<vector<Val_Type>> problem(ans_length, vector<Val_Type>(dhz));
-int answer_idx[m];
-int answer_pos[m];
+constexpr double limit_time = 80.0;
 
 
-void init(){
-  TestCase::make_random(arrays, problem, answer_idx, answer_pos);
-  // output answer_idx
-  rep(i, m){
-    cout << answer_idx[i] << " " << answer_pos[i] << "\n";
-  }
-  cout << "\n";
-}
 void read(){
-  File::read_values(arrays, problem, answer_idx, answer_pos, cin);
+  File::read_values(cin);
   // output answer_idx, pos
   rep(i, m){
     cout << answer_idx[i] << " " << answer_pos[i] << "\n";
@@ -163,10 +149,8 @@ int main(){
   srand(time(NULL));
   cin.tie(nullptr);
   ios::sync_with_stdio(false);
-  #ifdef isTestCase
-    read();
-  #else
-    init();
-  #endif
+
+  read();
+
   solver::solve();
 }
