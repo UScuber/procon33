@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include <Siv3D.hpp> // OpenSiv3D v0.6.3
 
-namespace Disp {
 
 struct WaveForm : Audio {
 	//Audio audio;
@@ -22,4 +21,16 @@ struct WaveForm : Audio {
 };
 
 
-}; // namespace Disp
+struct WaveTextReader {
+	TextReader reader;
+	Array<Array<int>> data;
+	int length;
+	double resolution;
+	void import_wave(const String &file_name);
+	void display(const int &frame);
+};
+
+
+
+// 書き込みを行う
+void export_wave(const String &file_name, const int &fps);

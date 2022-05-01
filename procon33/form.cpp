@@ -1,8 +1,6 @@
 ﻿#include "form.hpp"
 
-namespace Disp {
 
-//WaveForm::WaveForm(Audio &&audio) : audio(audio){}
 WaveForm::WaveForm(Audio &&audio) : Audio(audio){}
 void WaveForm::setSize(int w, int h){ width = w; height = h; }
 void WaveForm::setPosition(const Vec2 &pos){ dpos = pos; }
@@ -23,4 +21,53 @@ void WaveForm::update(const Font &font, bool force_update){
 	}
 }
 
-}; // namespace Disp
+
+void WaveTextReader::import_wave(const String &file_name){
+	reader = TextReader(U"../music/" + file_name + U".txt");
+	if(!reader.isOpen()){
+		Console << U"The file was not found";
+		return;
+	}
+	length = Parse<int>(reader.readLine().value());
+	data.resize(length);
+	resolution = Parse<double>(reader.readLine().value());
+	for(int i = 0; i < length; i++){
+		for(const auto &x : reader.readLine().value().split(' ')){
+			if(x.isEmpty()) continue;
+			data[i].push_back(Parse<int>(x));
+		}
+		assert(data[i].size() == 600);
+		for(int j = 0; j < 600; j++){
+			Rect(Arg::bottomLeft(j, 480), 1, data[i][j]).draw();
+		}
+	}
+}
+void WaveTextReader::display(const int &frame){
+	assert(0 <= frame && frame < length);
+	// 周波数の表示
+	for(int i = 0; i < 600; i++){
+		const int size = data[frame][i];
+		RectF(Arg::bottomLeft(i + 10, 480), 1, size).draw(Color(0, 100, 255));
+	}
+}
+
+
+void export_wave(const String &file_name, const int &fps){
+	Audio audio = Dialog::OpenAudio();
+	TextWriter writer(U"../music/" + file_name + U".txt");
+	const int length = int(audio.lengthSec() * fps);
+	writer.writeln(length);
+	FFTResult fft;
+	FFT::Analyze(fft, audio);
+	writer.writeln(fft.resolution);
+	for(int i = 0; i < length; i++){
+		audio.seekTime((double)i / fps);
+		FFT::Analyze(fft, audio);
+		for(int j = 0; j < 600; j++){
+			const double size = Pow(fft.buffer[j], 0.6) * 1000;
+			writer.write((int)size);
+			writer.write(U" ");
+		}
+		writer.writeln(U"");
+	}
+}
