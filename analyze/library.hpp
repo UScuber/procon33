@@ -16,20 +16,27 @@ constexpr ll infl = std::numeric_limits<ll>::max();
 constexpr int n = 44*2; //candidate arrays
 constexpr int m = 20; //select num
 constexpr int fps = 30;
-constexpr int tot_time = 10;
+constexpr int tot_time = 10; //[s]
 constexpr int tot_frame = fps * tot_time;
 constexpr int dhz = 600;
 constexpr int ans_length = tot_frame * 2;
 static_assert(m <= n);
-const double PI = acos(-1);
+static_assert(fps <= tot_frame);
+constexpr double PI = 3.141592653589793238;
 
 // 数列の値の型
 using Val_Type = int;
 
 vector<vector<Val_Type>> arrays[n];
 vector<vector<Val_Type>> problem(ans_length, vector<Val_Type>(dhz));
-int answer_idx[m];
-int answer_pos[m];
+
+struct Data {
+  int idx; //札の種類
+  int pos; //貼り付け位置
+  int st; //札の再生開始位置
+  int len; //札の再生の長さ
+};
+Data answer[m];
 
 
 inline uint randxor() noexcept{
@@ -47,12 +54,13 @@ inline int rnd(const int &l, const int &r) noexcept{
 
 // 波のあるランダムな値を生成
 vector<Val_Type> make_rnd_array(int n){
-  const int first_hz = rnd(5, 10);
+  int first_hz = rnd(6, 18);
   vector<Val_Type> res(n);
   rep(i, n){
-    double arc = cos(PI * i / first_hz) * 30;
+    double arc = (1 + cos((double)i / first_hz)) * 4.5;
     arc *= arc;
     res[i] = arc * rnd(7, 14)/10.0;
+    if(i % 50 == 0) first_hz++;
   }
   return res;
 }
@@ -94,8 +102,10 @@ void read_values(std::istream &is){
   rep(i, ans_length){
     rep(j, dhz) is >> problem[i][j];
   }
-  rep(i, m) is >> answer_idx[i];
-  rep(i, m) is >> answer_pos[i];
+  rep(i, m) is >> answer[i].idx;
+  rep(i, m) is >> answer[i].pos;
+  rep(i, m) is >> answer[i].st;
+  rep(i, m) is >> answer[i].len;
 }
 
 }; // namespace File
@@ -104,22 +114,27 @@ void read_values(std::istream &is){
 namespace solver {
 
 struct RndInfo {
-  int idx,pos, nxt_idx;
+  int idx; //変更する値
+  int pos; //変更後の貼り付け位置
+  int nxt_idx; //新しく更新する札
+  int st; //次の札の再生開始位置
+  int len; //次の札の再生の長さ
 };
 
-int best_pos[m] = {};
-int best_select_idx[m];
+Data best[m];
 int used_idx[n] = {};
 vector<vector<Val_Type>> best_sub(ans_length, vector<Val_Type>(dhz));
 
 inline RndInfo rnd_create() noexcept{
   const int t = rnd(0, 10) >= 2;
-  RndInfo change{ -1,-1,-1 };
+  RndInfo change;
   // select wav and change pos
   if(t == 0){
     change.idx = rnd(0, m);
-    change.nxt_idx = best_select_idx[change.idx];
+    change.nxt_idx = best[change.idx].idx;
     change.pos = rnd(0, tot_frame);
+    change.st = rnd(0, tot_frame - fps);
+    change.len = rnd(fps, tot_frame - change.st + 1);
   }
   // select other wav and swap and change pos
   else{
@@ -127,39 +142,41 @@ inline RndInfo rnd_create() noexcept{
     change.nxt_idx = rnd(0, n);
     while(used_idx[change.nxt_idx]) change.nxt_idx = rnd(0, n);
     change.pos = rnd(0, tot_frame);
+    change.st = rnd(0, tot_frame - fps);
+    change.len = rnd(fps, tot_frame - change.st + 1);
   }
   return change;
 }
 
 ll calc_one_changed_ans(const RndInfo &info) noexcept{
   auto temp = best_sub;
-  const int pre_pos = best_pos[info.idx];
-  const int pre_idx = best_select_idx[info.idx];
-  rep(i, tot_frame){
-    add(temp[i + pre_pos], arrays[pre_idx][i]);
+  const Data &pre = best[info.idx];
+  rep(i, pre.len){
+    add(temp[i + pre.pos], arrays[pre.idx][i + pre.st]);
   }
-  rep(i, tot_frame){
-    sub(temp[i + info.pos], arrays[info.nxt_idx][i]);
+  rep(i, info.len){
+    sub(temp[i + info.pos], arrays[info.nxt_idx][i + info.st]);
   }
   return calc_score(temp);
 }
 
 
 void update_values(const RndInfo &info){
-  const int pre_pos = best_pos[info.idx];
-  const int pre_idx = best_select_idx[info.idx];
   // update best_sub
-  rep(i, tot_frame){
-    add(best_sub[i + pre_pos], arrays[pre_idx][i]);
+  const Data &pre = best[info.idx];
+  rep(i, pre.len){
+    add(best_sub[i + pre.pos], arrays[pre.idx][i + pre.st]);
   }
-  rep(i, tot_frame){
-    sub(best_sub[i + info.pos], arrays[info.nxt_idx][i]);
+  rep(i, info.len){
+    sub(best_sub[i + info.pos], arrays[info.nxt_idx][i + info.st]);
   }
   // update info
-  used_idx[best_select_idx[info.idx]]--;
+  used_idx[best[info.idx].idx]--;
   used_idx[info.nxt_idx]++;
-  best_select_idx[info.idx] = info.nxt_idx;
-  best_pos[info.idx] = info.pos;
+  best[info.idx].idx = info.nxt_idx;
+  best[info.idx].pos = info.pos;
+  best[info.idx].st = info.st;
+  best[info.idx].len = info.len;
 }
 
 }; // namespace solver

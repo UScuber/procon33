@@ -3,14 +3,14 @@
 #include "library.hpp"
 using namespace std;
 
-constexpr double limit_time = 80.0;
+constexpr double limit_time = 60.0 * 10;
 
 
 void read(){
   File::read_values(cin);
   // output answer_idx, pos
   rep(i, m){
-    cout << answer_idx[i] << " " << answer_pos[i] << "\n";
+    cout << answer[i].idx << " " << answer[i].pos << "\n";
   }
   cout << "\n";
 }
@@ -19,7 +19,7 @@ void read(){
 namespace solver {
 
 constexpr int thread_num = 12;
-constexpr int tasks_num = 50;
+constexpr int tasks_num = 512;
 
 
 pair<ll, RndInfo> solve_one_thread(const RndInfo ran[tasks_num]){
@@ -40,12 +40,14 @@ void solve(){
   best_sub = problem;
   // 最初は適当に値を入れておく
   rep(i, m){
-    best_select_idx[i] = i;
+    best[i].idx = i;
+    best[i].pos = 0;
+    best[i].st = 0;
+    best[i].len = tot_frame;
     used_idx[i] = 1;
-    // best_pos == 0
     // best_subの計算
-    rep(j, tot_frame){
-      sub(best_sub[j], arrays[i][j]);
+    rep(j, best[i].len){
+      sub(best_sub[j + best[i].pos], arrays[i][j + best[i].st]);
     }
   }
   ll best_score = calc_score(best_sub);
@@ -67,7 +69,7 @@ void solve(){
       spend_time /= CLOCKS_PER_SEC;
       if(spend_time > limit_time*2/5) break;
     }
-    RndInfo change = rnd_create();
+    const RndInfo change = rnd_create();
     const ll score = calc_one_changed_ans(change);
     if(best_score > score){
       best_score = score;
@@ -83,13 +85,12 @@ void solve(){
   double temp_time = spend_time;
   int cnt = 0;
   for(; ; steps += thread_num * tasks_num){
-    constexpr int mask = (1 << 4) - 1;
-    if(!(cnt & mask)){
+    {
       spend_time = clock() - start_time;
       spend_time /= CLOCKS_PER_SEC;
       if(spend_time > limit_time) break;
     }
-    cnt++;
+    cnt += thread_num * tasks_num;
     future<pair<ll, RndInfo>> threads[thread_num];
     RndInfo rnd_arrays[thread_num][tasks_num];
     rep(i, thread_num){
@@ -98,7 +99,7 @@ void solve(){
       }
       threads[i] = async(solve_one_thread, rnd_arrays[i]);
     }
-    RndInfo best_change{ -1,-1,-1 };
+    RndInfo best_change;
     ll good_score = infl;
     rep(i, thread_num){
       ll score; RndInfo res;
@@ -126,18 +127,20 @@ void solve(){
 
   // output result
   rep(i, m){
-    cout << best_select_idx[i] << " " << best_pos[i] << "\n";
+    cout << best[i].idx << " " << best[i].pos << "\n";
   }
   cout << "\n";
   int diff_num = 0;
   rep(i, m){
     bool ok = false;
-    rep(j, m) if(best_select_idx[i] == answer_idx[j] && best_pos[i] == answer_pos[j]){
-      ok = true; break;
+    rep(j, m){
+        if(best[i].idx == answer[j].idx){
+        ok = true; break;
+      }
     }
     if(ok) continue;
     diff_num++;
-    cout << best_select_idx[i] << " " << best_pos[i] << "\n";
+    cout << best[i].idx << " " << best[i].pos << "\n";
   }
   cerr << "Diff: " << diff_num << "/" << m << "\n";
 }

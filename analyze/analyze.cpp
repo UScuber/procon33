@@ -8,7 +8,7 @@ void read(){
   File::read_values(cin);
   // output answer_idx, pos
   rep(i, m){
-    cout << answer_idx[i] << " " << answer_pos[i] << "\n";
+    cout << answer[i].idx << " " << answer[i].pos << "\n";
   }
   cout << "\n";
 }
@@ -19,11 +19,14 @@ void solve(){
   best_sub = problem;
   // 最初は適当に値を入れておく
   rep(i, m){
-    best_select_idx[i] = i;
+    best[i].idx = i;
+    best[i].pos = 0;
+    best[i].st = 0;
+    best[i].len = tot_frame;
     used_idx[i] = 1;
     // best_subの計算
-    rep(j, tot_frame){
-      sub(best_sub[j], arrays[i][j]);
+    rep(j, best[i].len){
+      sub(best_sub[j + best[i].pos], arrays[i][j + best[i].st]);
     }
   }
   ll best_score = calc_score(best_sub);
@@ -44,7 +47,7 @@ void solve(){
       spend_time /= CLOCKS_PER_SEC;
       if(spend_time > limit_time) break;
     }
-    RndInfo change = rnd_create();
+    const RndInfo change = rnd_create();
     const ll score = calc_one_changed_ans(change);
     if(best_score > score){
       best_score = score;
@@ -63,18 +66,20 @@ void solve(){
 
   // output result
   rep(i, m){
-    cout << best_select_idx[i] << " " << best_pos[i] << "\n";
+    cout << best[i].idx << " " << best[i].pos << "\n";
   }
   cout << "\n";
   int diff_num = 0;
   rep(i, m){
     bool ok = false;
-    rep(j, m) if(best_select_idx[i] == answer_idx[j] && best_pos[i] == answer_pos[j]){
-      ok = true; break;
+    rep(j, m){
+        if(best[i].idx == answer[j].idx){
+        ok = true; break;
+      }
     }
     if(ok) continue;
     diff_num++;
-    cout << best_select_idx[i] << " " << best_pos[i] << "\n";
+    cout << best[i].idx << " " << best[i].pos << "\n";
   }
   cerr << "Diff: " << diff_num << "/" << m << "\n";
 }

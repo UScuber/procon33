@@ -16,23 +16,30 @@ void make_random(){
     if(used[ran]){
       i--; continue;
     }
-    answer_idx[i] = ran;
+    answer[i].idx = ran;
     used[ran] = 1;
   }
   rep(i, m){
-    assert(0 <= answer_idx[i] && answer_idx[i] < n);
+    assert(0 <= answer[i].idx && answer[i].idx < n);
     const int pos = rnd(0, tot_frame);
-    rep(j, tot_frame){
-      add(problem[j + pos], arrays[answer_idx[i]][j]);
+    const int st = rnd(0, tot_frame - fps);
+    const int len = rnd(fps, tot_frame - st + 1);
+    rep(j, len){
+      add(problem[j + pos], arrays[answer[i].idx][j + st]);
     }
-    answer_pos[i] = pos;
+    answer[i].idx = pos;
+    answer[i].st = st;
+    answer[i].len = len;
   }
   // ランダムに値をずらす
   rep(i, ans_length){
     rep(j, dhz){
-      const int t = rnd(0, 2);
-      if(t) continue;
-      problem[i][j] = rnd(7,14)/10.0 * problem[i][j];
+      const int t = rnd(0, 100);
+      if(t < 1) problem[i][j] = problem[i][j] / 5;
+      else if(t < 3) problem[i][j] = problem[i][j] * 3/10.0;
+      else if(t < 6) problem[i][j] = problem[i][j] * rnd(4,6)/10.0;
+      else if(t < 10) problem[i][j] = problem[i][j] * rnd(6,8)/10.0;
+      else if(t < 15) problem[i][j] = problem[i][j] * rnd(8,11)/10.0;
     }
   }
 }
@@ -55,8 +62,12 @@ int main(){
     rep(j, dhz) cout << problem[i][j] << " ";
   }
   cout << "\n";
-  rep(i, m) cout << answer_idx[i] << " ";
+  rep(i, m) cout << answer[i].idx << " ";
   cout << "\n";
-  rep(i, m) cout << answer_pos[i] << " ";
+  rep(i, m) cout << answer[i].pos << " ";
+  cout << "\n";
+  rep(i, m) cout << answer[i].st << " ";
+  cout << "\n";
+  rep(i, m) cout << answer[i].len << " ";
   cout << "\n";
 }
