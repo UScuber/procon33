@@ -2,11 +2,9 @@
 using namespace std;
 
 void make_random(){
-  assert(problem.size() == ans_length);
   rep(i, n){
-    arrays[i].resize(tot_frame);
     rep(j, tot_frame){
-      arrays[i][j] = make_rnd_array(dhz);
+      make_rnd_array(arrays[i][j]);
     }
   }
   // make answer_idx
@@ -27,7 +25,7 @@ void make_random(){
     rep(j, len){
       add(problem[j + pos], arrays[answer[i].idx][j + st]);
     }
-    answer[i].idx = pos;
+    answer[i].pos = pos;
     answer[i].st = st;
     answer[i].len = len;
   }
@@ -35,11 +33,11 @@ void make_random(){
   rep(i, ans_length){
     rep(j, dhz){
       const int t = rnd(0, 100);
-      if(t < 1) problem[i][j] = problem[i][j] / 5;
-      else if(t < 3) problem[i][j] = problem[i][j] * 3/10.0;
-      else if(t < 6) problem[i][j] = problem[i][j] * rnd(4,6)/10.0;
-      else if(t < 10) problem[i][j] = problem[i][j] * rnd(6,8)/10.0;
-      else if(t < 15) problem[i][j] = problem[i][j] * rnd(8,11)/10.0;
+      if(t < 4) problem[i][j] = problem[i][j] / 5;
+      else if(t < 7) problem[i][j] = problem[i][j] * 3/10.0;
+      else if(t < 10) problem[i][j] = problem[i][j] * rnd(4,6)/10.0;
+      else if(t < 20) problem[i][j] = problem[i][j] * rnd(6,8)/10.0;
+      else if(t < 27) problem[i][j] = problem[i][j] * rnd(8,11)/10.0;
     }
   }
 }

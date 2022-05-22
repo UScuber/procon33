@@ -3,7 +3,7 @@
 #include "library.hpp"
 using namespace std;
 
-constexpr double limit_time = 60.0 * 10;
+constexpr double limit_time = 60.0;
 
 
 void read(){
@@ -23,21 +23,22 @@ constexpr int tasks_num = 512;
 
 
 pair<ll, RndInfo> solve_one_thread(const RndInfo ran[tasks_num]){
-  ll best_score = infl;
-  RndInfo best_change{ -1,-1,-1 };
+  ll best_sc = infl;
+  RndInfo best_change;
   rep(i, tasks_num){
     const ll score = calc_one_changed_ans(ran[i]);
-    if(best_score > score){
-      best_score = score;
+    if(best_sc > score){
+      best_sc = score;
       best_change = ran[i];
     }
   }
-  assert(best_change.idx != -1);
-  return { best_score, best_change };
+  //assert(best_change.idx != -1);
+  return { best_sc, best_change };
 }
 
 void solve(){
-  best_sub = problem;
+  //best_sub = problem;
+  memcpy(best_sub, problem, sizeof(Val_Type) * ans_length * dhz);
   // 最初は適当に値を入れておく
   rep(i, m){
     best[i].idx = i;
@@ -50,7 +51,7 @@ void solve(){
       sub(best_sub[j + best[i].pos], arrays[i][j + best[i].st]);
     }
   }
-  ll best_score = calc_score(best_sub);
+  best_score = calc_score(best_sub);
   
   cerr << "First Score: " << best_score << "\n";
 
@@ -63,6 +64,7 @@ void solve(){
   // 山登り法(single thread)
   cerr << "Start Single Thread\n";
   for(; ; steps++){
+    break;
     constexpr int mask = (1 << 5) - 1;
     if(!(steps & mask)){
       spend_time = clock() - start_time;

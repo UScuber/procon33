@@ -16,7 +16,8 @@ void read(){
 namespace solver {
 
 void solve(){
-  best_sub = problem;
+  //best_sub = problem;
+  memcpy(best_sub, problem, sizeof(Val_Type) * ans_length * dhz);
   // 最初は適当に値を入れておく
   rep(i, m){
     best[i].idx = i;

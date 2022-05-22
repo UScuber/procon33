@@ -27,8 +27,8 @@ constexpr double PI = 3.141592653589793238;
 // 数列の値の型
 using Val_Type = int;
 
-vector<vector<Val_Type>> arrays[n];
-vector<vector<Val_Type>> problem(ans_length, vector<Val_Type>(dhz));
+Val_Type arrays[n][tot_frame][dhz];
+Val_Type problem[ans_length][dhz] = {};
 
 struct Data {
   int idx; //札の種類
@@ -53,33 +53,30 @@ inline int rnd(const int &l, const int &r) noexcept{
 }
 
 // 波のあるランダムな値を生成
-vector<Val_Type> make_rnd_array(int n){
+void make_rnd_array(Val_Type v[dhz]){
   int first_hz = rnd(6, 18);
-  vector<Val_Type> res(n);
-  rep(i, n){
+  rep(i, dhz){
     double arc = (1 + cos((double)i / first_hz)) * 4.5;
     arc *= arc;
-    res[i] = arc * rnd(7, 14)/10.0;
+    v[i] = arc * rnd(7, 14)/10.0;
     if(i % 50 == 0) first_hz++;
   }
-  return res;
 }
 
 // 1次元配列の加算・減算
-inline void add(vector<Val_Type> &a, const vector<Val_Type> &b) noexcept{
-  rep(i, b.size()) a[i] += b[i];
+inline void add(Val_Type a[dhz], const Val_Type b[dhz]) noexcept{
+  rep(i, dhz) a[i] += b[i];
 }
-inline void sub(vector<Val_Type> &a, const vector<Val_Type> &b) noexcept{
-  rep(i, b.size()) a[i] -= b[i];
+inline void sub(Val_Type a[dhz], const Val_Type b[dhz]) noexcept{
+  rep(i, dhz) a[i] -= b[i];
 }
 
 // 問題の数列から数字を引いたやつのスコアを計算する
-ll calc_score(const vector<vector<Val_Type>> &a) noexcept{
-  const int len = a[0].size();
-  Val_Type score = 0;
-  rep(i, a.size()){
+ll calc_score(const Val_Type a[ans_length][dhz]) noexcept{
+  ll score = 0;
+  rep(i, ans_length){
     Val_Type tot = 0;
-    rep(j, len){
+    rep(j, dhz){
       //tot += a[i][j] * a[i][j];
       tot += abs(a[i][j]);
     }
@@ -92,9 +89,7 @@ ll calc_score(const vector<vector<Val_Type>> &a) noexcept{
 namespace File {
 
 void read_values(std::istream &is){
-  assert(problem.size() == ans_length);
   rep(i, n){
-    arrays[i].assign(tot_frame, vector<Val_Type>(dhz));
     rep(j, tot_frame){
       rep(k, dhz) is >> arrays[i][j][k];
     }
@@ -123,7 +118,11 @@ struct RndInfo {
 
 Data best[m];
 int used_idx[n] = {};
-vector<vector<Val_Type>> best_sub(ans_length, vector<Val_Type>(dhz));
+Val_Type best_sub[ans_length][dhz];
+Val_Type temp_arr[ans_length][dhz];
+
+ll best_score = infl;
+
 
 inline RndInfo rnd_create() noexcept{
   const int t = rnd(0, 10) >= 2;
@@ -147,17 +146,54 @@ inline RndInfo rnd_create() noexcept{
   }
   return change;
 }
+// flip==-1 -> (left,right)=(info,pre), flip==-1 -> (left,right)=(pre,info)
+ll calc_one_changed_ans2(const RndInfo &left, const RndInfo &right, const int &flip = 1) noexcept{
+  assert(left.pos <= right.pos);
+  ll score = best_score;
+  // cross
+  if(max(left.pos, right.pos) < min(left.pos+left.len, right.pos+right.len)){
+    if(left.pos <= right.pos){
+
+    }
+    if(left.pos + left.len <= right.pos + right.len){
+      
+    }
+  }
+  // not cross
+  else{
+    rep(i, left.len){
+      rep(j, dhz){
+        score -= abs(best_sub[i + left.pos][j]);
+        const Val_Type d = best_sub[i + left.pos][j] - flip*arrays[left.nxt_idx][i + left.st][j];
+        score += abs(d);
+      }
+    }
+    rep(i, right.len){
+      rep(j, dhz){
+        score -= abs(best_sub[i + right.pos][j]);
+        const Val_Type d = best_sub[i + right.pos][j] + flip*arrays[right.nxt_idx][i + right.st][j];
+        score += abs(d);
+      }
+    }
+  }
+}
 
 ll calc_one_changed_ans(const RndInfo &info) noexcept{
-  auto temp = best_sub;
   const Data &pre = best[info.idx];
   rep(i, pre.len){
-    add(temp[i + pre.pos], arrays[pre.idx][i + pre.st]);
+    add(best_sub[i + pre.pos], arrays[pre.idx][i + pre.st]);
   }
   rep(i, info.len){
-    sub(temp[i + info.pos], arrays[info.nxt_idx][i + info.st]);
+    sub(best_sub[i + info.pos], arrays[info.nxt_idx][i + info.st]);
   }
-  return calc_score(temp);
+  const ll score = calc_score(best_sub);
+  rep(i, pre.len){
+    sub(best_sub[i + pre.pos], arrays[pre.idx][i + pre.st]);
+  }
+  rep(i, info.len){
+    add(best_sub[i + info.pos], arrays[info.nxt_idx][i + info.st]);
+  }
+  return score;
 }
 
 
