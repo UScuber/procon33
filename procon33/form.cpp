@@ -64,7 +64,8 @@ void export_wave(const String &file_name, const int &fps){
 		audio.seekTime((double)i / fps);
 		FFT::Analyze(fft, audio);
 		for(int j = 0; j < 600; j++){
-			const double size = Pow(fft.buffer[j], 0.6) * 1000;
+			//const double size = Pow(fft.buffer[j], 0.6) * 1000;
+			const double size = fft.buffer[j] * 3000 * 4;
 			writer.write((int)size);
 			writer.write(U" ");
 		}
