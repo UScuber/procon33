@@ -149,94 +149,75 @@ inline RndInfo rnd_create() noexcept{
   return change;
 }
 
-ll calc_one_changed_ans(const RndInfo &left) noexcept{
-  const Data &right = best[left.idx];
+// a = arrays[idx][][], b = best_sub[][]
+inline constexpr void calc_range_score_sub(const Val_Type a[][dhz], const Val_Type b[][dhz], const int &range, ll &score) noexcept{
+  rep(i, range){
+    rep(j, dhz){
+      score -= abs(b[i][j]);
+      const Val_Type d = b[i][j] - a[i][j];
+      score += abs(d);
+    }
+  }
+}
+inline constexpr void calc_range_score_add(const Val_Type a[][dhz], const Val_Type b[][dhz], const int &range, ll &score) noexcept{
+  rep(i, range){
+    rep(j, dhz){
+      score -= abs(b[i][j]);
+      const Val_Type d = b[i][j] + a[i][j];
+      score += abs(d);
+    }
+  }
+}
+
+inline ll calc_one_changed_ans(const RndInfo &info) noexcept{
+  const Data &pre = best[info.idx];
+  const int info_rig = info.pos + info.len;
+  const int pre_rig = pre.pos + pre.len;
+  const Val_Type (*arr_info)[dhz] = arrays[info.nxt_idx] + info.st;
+  const Val_Type (*arr_pre)[dhz] = arrays[pre.idx] + pre.st;
   ll score = best_score;
   // cross
-  if(max(left.pos, right.pos) < min(left.pos+left.len, right.pos+right.len)){
+  if(max(info.pos, pre.pos) < min(info_rig, pre_rig)){
     // 左側がleft
-    if(left.pos <= right.pos){
-      const int leftest = left.pos;
-      const int rightest = min(left.pos + left.len, right.pos);
-      //[leftest, rightest)
-      for(int i = leftest; i < rightest; i++){
-        rep(j, dhz){
-          score -= abs(best_sub[i][j]);
-          const Val_Type d = best_sub[i][j] - arrays[left.nxt_idx][i-left.pos+left.st][j];
-          score += abs(d);
-        }
-      }
+    if(info.pos <= pre.pos){
+      const int rightest = min(info_rig, pre.pos);
+      calc_range_score_sub(arr_info, best_sub+info.pos, rightest-info.pos, score);
     }
     // 左側がright
     else{
-      const int leftest = right.pos;
-      const int rightest = min(right.pos + right.len, left.pos);
-      //[leftest, rightest)
-      for(int i = leftest; i < rightest; i++){
-        rep(j, dhz){
-          score -= abs(best_sub[i][j]);
-          const Val_Type d = best_sub[i][j] + arrays[right.idx][i-right.pos+right.st][j];
-          score += abs(d);
-        }
-      }
+      const int rightest = min(pre_rig, info.pos);
+      calc_range_score_add(arr_pre, best_sub+pre.pos, rightest-pre.pos, score);
     }
     // 右側がright
-    if(left.pos + left.len <= right.pos + right.len){
-      const int leftest = max(right.pos, left.pos + left.len);
-      const int rightest = right.pos + right.len;
-      const int s = max(left.pos+left.len - right.pos, 0);
-      for(int i = leftest; i < rightest; i++){
-        rep(j, dhz){
-          score -= abs(best_sub[i][j]);
-          const Val_Type d = best_sub[i][j] + arrays[right.idx][i-leftest+s+right.st][j];
-          score += abs(d);
-        }
-      }
+    if(info_rig <= pre_rig){
+      const int leftest = max(pre.pos, info_rig);
+      const int s = max(info_rig - pre.pos, 0);
+      calc_range_score_add(arr_pre+s, best_sub+leftest, pre_rig-leftest, score);
     }
     // 右側がleft
     else{
-      const int leftest = max(left.pos, right.pos + right.len);
-      const int rightest = left.pos + left.len;
-      const int s = max(right.pos+right.len - left.pos, 0);
-      for(int i = leftest; i < rightest; i++){
-        rep(j, dhz){
-          score -= abs(best_sub[i][j]);
-          const Val_Type d = best_sub[i][j] - arrays[left.nxt_idx][i-leftest+s+left.st][j];
-          score += abs(d);
-        }
-      }
+      const int leftest = max(info.pos, pre_rig);
+      const int s = max(pre_rig - info.pos, 0);
+      calc_range_score_sub(arr_info+s, best_sub-leftest, info_rig-leftest, score);
     }
     // middle
-    const int leftest = max(left.pos, right.pos);
-    const int rightest = min(left.pos + left.len, right.pos + right.len);
-    const int sl = max(right.pos - left.pos, 0);
-    const int sr = max(left.pos - right.pos, 0);
-    for(int i = leftest; i < rightest; i++){
+    const int leftest = max(info.pos, pre.pos);
+    const int range = min(info_rig, pre_rig) - leftest;
+    const int sl = max(pre.pos - info.pos, 0);
+    const int sr = max(info.pos - pre.pos, 0);
+    rep(i, range){
       rep(j, dhz){
-        score -= abs(best_sub[i][j]);
-        const Val_Type d = best_sub[i][j] - arrays[left.nxt_idx][i-leftest+sl+left.st][j] + arrays[right.idx][i-leftest+sr+right.st][j];
+        score -= abs(best_sub[i+leftest][j]);
+        const Val_Type d = best_sub[i+leftest][j] - arr_info[i+sl][j] + arr_pre[i+sr][j];
         score += abs(d);
       }
     }
   }
   // not cross
   else{
-    rep(i, left.len){
-      rep(j, dhz){
-        score -= abs(best_sub[i + left.pos][j]);
-        const Val_Type d = best_sub[i + left.pos][j] - arrays[left.nxt_idx][i + left.st][j];
-        score += abs(d);
-      }
-    }
-    rep(i, right.len){
-      rep(j, dhz){
-        score -= abs(best_sub[i + right.pos][j]);
-        const Val_Type d = best_sub[i + right.pos][j] + arrays[right.idx][i + right.st][j];
-        score += abs(d);
-      }
-    }
+    calc_range_score_sub(arr_info, best_sub+info.pos, info.len, score);
+    calc_range_score_add(arr_pre, best_sub+pre.pos, pre.len, score);
   }
-  //assert(score >= 0);
   return score;
 }
 
