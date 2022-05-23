@@ -9,6 +9,8 @@
 using ll = long long;
 using uint = unsigned int;
 using std::vector;
+using std::max;
+using std::min;
 
 constexpr int inf = std::numeric_limits<int>::max();
 constexpr ll infl = std::numeric_limits<ll>::max();
@@ -146,17 +148,75 @@ inline RndInfo rnd_create() noexcept{
   }
   return change;
 }
-// flip==-1 -> (left,right)=(info,pre), flip==-1 -> (left,right)=(pre,info)
-ll calc_one_changed_ans2(const RndInfo &left, const RndInfo &right, const int &flip = 1) noexcept{
-  assert(left.pos <= right.pos);
+
+ll calc_one_changed_ans(const RndInfo &left) noexcept{
+  const Data &right = best[left.idx];
   ll score = best_score;
   // cross
   if(max(left.pos, right.pos) < min(left.pos+left.len, right.pos+right.len)){
+    // 左側がleft
     if(left.pos <= right.pos){
-
+      const int leftest = left.pos;
+      const int rightest = min(left.pos + left.len, right.pos);
+      //[leftest, rightest)
+      for(int i = leftest; i < rightest; i++){
+        rep(j, dhz){
+          score -= abs(best_sub[i][j]);
+          const Val_Type d = best_sub[i][j] - arrays[left.nxt_idx][i-left.pos+left.st][j];
+          score += abs(d);
+        }
+      }
     }
+    // 左側がright
+    else{
+      const int leftest = right.pos;
+      const int rightest = min(right.pos + right.len, left.pos);
+      //[leftest, rightest)
+      for(int i = leftest; i < rightest; i++){
+        rep(j, dhz){
+          score -= abs(best_sub[i][j]);
+          const Val_Type d = best_sub[i][j] + arrays[right.idx][i-right.pos+right.st][j];
+          score += abs(d);
+        }
+      }
+    }
+    // 右側がright
     if(left.pos + left.len <= right.pos + right.len){
-      
+      const int leftest = max(right.pos, left.pos + left.len);
+      const int rightest = right.pos + right.len;
+      const int s = max(left.pos+left.len - right.pos, 0);
+      for(int i = leftest; i < rightest; i++){
+        rep(j, dhz){
+          score -= abs(best_sub[i][j]);
+          const Val_Type d = best_sub[i][j] + arrays[right.idx][i-leftest+s+right.st][j];
+          score += abs(d);
+        }
+      }
+    }
+    // 右側がleft
+    else{
+      const int leftest = max(left.pos, right.pos + right.len);
+      const int rightest = left.pos + left.len;
+      const int s = max(right.pos+right.len - left.pos, 0);
+      for(int i = leftest; i < rightest; i++){
+        rep(j, dhz){
+          score -= abs(best_sub[i][j]);
+          const Val_Type d = best_sub[i][j] - arrays[left.nxt_idx][i-leftest+s+left.st][j];
+          score += abs(d);
+        }
+      }
+    }
+    // middle
+    const int leftest = max(left.pos, right.pos);
+    const int rightest = min(left.pos + left.len, right.pos + right.len);
+    const int sl = max(right.pos - left.pos, 0);
+    const int sr = max(left.pos - right.pos, 0);
+    for(int i = leftest; i < rightest; i++){
+      rep(j, dhz){
+        score -= abs(best_sub[i][j]);
+        const Val_Type d = best_sub[i][j] - arrays[left.nxt_idx][i-leftest+sl+left.st][j] + arrays[right.idx][i-leftest+sr+right.st][j];
+        score += abs(d);
+      }
     }
   }
   // not cross
@@ -164,35 +224,19 @@ ll calc_one_changed_ans2(const RndInfo &left, const RndInfo &right, const int &f
     rep(i, left.len){
       rep(j, dhz){
         score -= abs(best_sub[i + left.pos][j]);
-        const Val_Type d = best_sub[i + left.pos][j] - flip*arrays[left.nxt_idx][i + left.st][j];
+        const Val_Type d = best_sub[i + left.pos][j] - arrays[left.nxt_idx][i + left.st][j];
         score += abs(d);
       }
     }
     rep(i, right.len){
       rep(j, dhz){
         score -= abs(best_sub[i + right.pos][j]);
-        const Val_Type d = best_sub[i + right.pos][j] + flip*arrays[right.nxt_idx][i + right.st][j];
+        const Val_Type d = best_sub[i + right.pos][j] + arrays[right.idx][i + right.st][j];
         score += abs(d);
       }
     }
   }
-}
-
-ll calc_one_changed_ans(const RndInfo &info) noexcept{
-  const Data &pre = best[info.idx];
-  rep(i, pre.len){
-    add(best_sub[i + pre.pos], arrays[pre.idx][i + pre.st]);
-  }
-  rep(i, info.len){
-    sub(best_sub[i + info.pos], arrays[info.nxt_idx][i + info.st]);
-  }
-  const ll score = calc_score(best_sub);
-  rep(i, pre.len){
-    sub(best_sub[i + pre.pos], arrays[pre.idx][i + pre.st]);
-  }
-  rep(i, info.len){
-    add(best_sub[i + info.pos], arrays[info.nxt_idx][i + info.st]);
-  }
+  //assert(score >= 0);
   return score;
 }
 

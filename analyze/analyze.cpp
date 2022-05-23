@@ -1,7 +1,7 @@
 #include "library.hpp"
 using namespace std;
 
-constexpr double limit_time = 60.0;
+constexpr double limit_time = 60.0 / 6;
 
 
 void read(){
@@ -30,7 +30,7 @@ void solve(){
       sub(best_sub[j + best[i].pos], arrays[i][j + best[i].st]);
     }
   }
-  ll best_score = calc_score(best_sub);
+  best_score = calc_score(best_sub);
   
   cerr << "First Score: " << best_score << "\n";
 

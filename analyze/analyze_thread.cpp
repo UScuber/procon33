@@ -3,7 +3,7 @@
 #include "library.hpp"
 using namespace std;
 
-constexpr double limit_time = 60.0;
+constexpr double limit_time = 60.0 * 7;
 
 
 void read(){
@@ -64,7 +64,6 @@ void solve(){
   // 山登り法(single thread)
   cerr << "Start Single Thread\n";
   for(; ; steps++){
-    break;
     constexpr int mask = (1 << 5) - 1;
     if(!(steps & mask)){
       spend_time = clock() - start_time;
