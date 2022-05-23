@@ -37,23 +37,7 @@ pair<ll, RndInfo> solve_one_thread(const RndInfo ran[tasks_num]){
 }
 
 void solve(){
-  //best_sub = problem;
-  memcpy(best_sub, problem, sizeof(Val_Type) * ans_length * dhz);
-  // 最初は適当に値を入れておく
-  rep(i, m){
-    best[i].idx = i;
-    best[i].pos = 0;
-    best[i].st = 0;
-    best[i].len = tot_frame;
-    used_idx[i] = 1;
-    // best_subの計算
-    rep(j, best[i].len){
-      sub(best_sub[j + best[i].pos], arrays[i][j + best[i].st]);
-    }
-  }
-  best_score = calc_score(best_sub);
-  
-  cerr << "First Score: " << best_score << "\n";
+  init();
 
   int update_num = 0;
   double last_upd_time = -1;
@@ -96,7 +80,7 @@ void solve(){
     RndInfo rnd_arrays[thread_num][tasks_num];
     rep(i, thread_num){
       rep(j, tasks_num){
-        rnd_arrays[i][j] = rnd_create();
+        rnd_create(rnd_arrays[i][j]);
       }
       threads[i] = async(solve_one_thread, rnd_arrays[i]);
     }

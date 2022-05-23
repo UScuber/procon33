@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
-#include <numeric>
 #include <time.h>
 #define rep(i, n) for(int i = 0; i < (n); i++)
 using ll = long long;
@@ -12,8 +11,8 @@ using std::vector;
 using std::max;
 using std::min;
 
-constexpr int inf = std::numeric_limits<int>::max();
-constexpr ll infl = std::numeric_limits<ll>::max();
+constexpr int inf = (unsigned int)-1 >> 1;
+constexpr ll infl = (unsigned ll)-1 >> 1;
 
 constexpr int n = 44*2; //candidate arrays
 constexpr int m = 20; //select num
@@ -66,10 +65,10 @@ void make_rnd_array(Val_Type v[dhz]){
 }
 
 // 1次元配列の加算・減算
-inline void add(Val_Type a[dhz], const Val_Type b[dhz]) noexcept{
+inline constexpr void add(Val_Type a[dhz], const Val_Type b[dhz]) noexcept{
   rep(i, dhz) a[i] += b[i];
 }
-inline void sub(Val_Type a[dhz], const Val_Type b[dhz]) noexcept{
+inline constexpr void sub(Val_Type a[dhz], const Val_Type b[dhz]) noexcept{
   rep(i, dhz) a[i] -= b[i];
 }
 
@@ -125,10 +124,27 @@ Val_Type temp_arr[ans_length][dhz];
 
 ll best_score = infl;
 
+void init(){
+  memcpy(best_sub, problem, sizeof(Val_Type) * ans_length * dhz);
+  // 最初は適当に値を入れておく
+  rep(i, m){
+    best[i].idx = i;
+    best[i].pos = 0;
+    best[i].st = 0;
+    best[i].len = tot_frame;
+    used_idx[i] = 1;
+    // best_subの計算
+    rep(j, best[i].len){
+      sub(best_sub[j + best[i].pos], arrays[best[i].idx][j + best[i].st]);
+    }
+  }
+  best_score = calc_score(best_sub);
+  
+  std::cerr << "First Score: " << best_score << "\n";
+}
 
-inline RndInfo rnd_create() noexcept{
+inline void rnd_create(RndInfo &change) noexcept{
   const int t = rnd(0, 10) >= 2;
-  RndInfo change;
   // select wav and change pos
   if(t == 0){
     change.idx = rnd(0, m);
@@ -146,6 +162,10 @@ inline RndInfo rnd_create() noexcept{
     change.st = rnd(0, tot_frame - fps);
     change.len = rnd(fps, tot_frame - change.st + 1);
   }
+}
+inline RndInfo rnd_create() noexcept{
+  RndInfo change;
+  rnd_create(change);
   return change;
 }
 
@@ -169,7 +189,7 @@ inline constexpr void calc_range_score_add(const Val_Type a[][dhz], const Val_Ty
   }
 }
 
-inline ll calc_one_changed_ans(const RndInfo &info) noexcept{
+inline constexpr ll calc_one_changed_ans(const RndInfo &info) noexcept{
   const Data &pre = best[info.idx];
   const int info_rig = info.pos + info.len;
   const int pre_rig = pre.pos + pre.len;

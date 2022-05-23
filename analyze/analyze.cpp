@@ -16,23 +16,7 @@ void read(){
 namespace solver {
 
 void solve(){
-  //best_sub = problem;
-  memcpy(best_sub, problem, sizeof(Val_Type) * ans_length * dhz);
-  // 最初は適当に値を入れておく
-  rep(i, m){
-    best[i].idx = i;
-    best[i].pos = 0;
-    best[i].st = 0;
-    best[i].len = tot_frame;
-    used_idx[i] = 1;
-    // best_subの計算
-    rep(j, best[i].len){
-      sub(best_sub[j + best[i].pos], arrays[i][j + best[i].st]);
-    }
-  }
-  best_score = calc_score(best_sub);
-  
-  cerr << "First Score: " << best_score << "\n";
+  init();
 
   int update_num = 0;
   double last_upd_time = -1;
