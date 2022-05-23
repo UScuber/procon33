@@ -3,7 +3,7 @@
 #include "library.hpp"
 using namespace std;
 
-constexpr double limit_time = 60.0;
+constexpr double limit_time = 60.0 * 20;
 
 
 void read(){
@@ -19,7 +19,9 @@ void read(){
 namespace solver {
 
 constexpr int thread_num = 12;
-constexpr int tasks_num = 512;
+constexpr int tasks_num = 512 * 8;
+
+RndInfo rnd_arrays[thread_num][tasks_num];
 
 
 pair<ll, RndInfo> solve_one_thread(const RndInfo ran[tasks_num]){
@@ -32,7 +34,6 @@ pair<ll, RndInfo> solve_one_thread(const RndInfo ran[tasks_num]){
       best_change = ran[i];
     }
   }
-  //assert(best_change.idx != -1);
   return { best_sc, best_change };
 }
 
@@ -77,7 +78,6 @@ void solve(){
     }
     cnt += thread_num * tasks_num;
     future<pair<ll, RndInfo>> threads[thread_num];
-    RndInfo rnd_arrays[thread_num][tasks_num];
     rep(i, thread_num){
       rep(j, tasks_num){
         rnd_create(rnd_arrays[i][j]);

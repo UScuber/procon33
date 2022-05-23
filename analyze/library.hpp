@@ -12,7 +12,7 @@ using std::max;
 using std::min;
 
 constexpr int inf = (unsigned int)-1 >> 1;
-constexpr ll infl = (unsigned ll)-1 >> 1;
+constexpr ll infl = (unsigned long long)-1 >> 1;
 
 constexpr int n = 44*2; //candidate arrays
 constexpr int m = 20; //select num
