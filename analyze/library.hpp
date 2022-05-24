@@ -92,7 +92,10 @@ namespace File {
 void read_values(std::istream &is){
   rep(i, n){
     rep(j, tot_frame){
-      rep(k, dhz) is >> arrays[i][j][k];
+      rep(k, dhz){
+        is >> arrays[i][j][k];
+        //arrays[i][j][k] *= 1.0 - (m-2) * -0.3/18;
+      }
     }
   }
   rep(i, ans_length){

@@ -32,8 +32,19 @@ void make_random(){
   // ランダムに値をずらす
   rep(i, ans_length){
     rep(j, dhz){
-      const int t = rnd(1, 101);
-      problem[i][j] = problem[i][j] * t / 100;
+      const int t = rnd(0, 100);
+      //problem[i][j] = problem[i][j] * t / 100;
+      double p = 1.0;
+      if(t < 3) p = 0.1;
+      else if(t < 8) p = 0.2;
+      else if(t < 15) p = 0.3;
+      else if(t < 23) p = 0.4;
+      else if(t < 30) p = 0.5;
+      else if(t < 36) p = 0.6;
+      else if(t < 40) p = 0.7;
+      else if(t < 43) p = 0.8;
+      else if(t < 50) p = 0.9;
+      problem[i][j] *= p;
     }
   }
 }

@@ -3,7 +3,7 @@
 #include "library.hpp"
 using namespace std;
 
-constexpr double limit_time = 60.0 * 20;
+constexpr double limit_time = 60.0 * 2;
 
 
 void read(){
