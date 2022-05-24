@@ -5,8 +5,8 @@ procon33.sln
 procon33/.editorconfig
 procon33/App/
 procon33.*
-procon33/music/joumou.wav
+procon33/music/*.exe
 
 analyze/in.txt
 analyze/out.txt
-analyze/a.exe
+analyze/*.exe
