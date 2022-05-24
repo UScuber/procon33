@@ -7,12 +7,17 @@ void read(vector<vector<int>> &res){
 	int n;
 	double resolution;
 	cin >> n >> resolution;
+	cerr << n << " " << resolution << "\n";
 	res.assign(n, vector<int>(hz));
 	rep(i, n) rep(j, hz) cin >> res[i][j];
 }
 vector<vector<vector<int>>> waves(20);
 vector<vector<int>> allwave;
 int main(){
+	cin.tie(nullptr);
+	ios::sync_with_stdio(false);
+	string s; cin >> s;
+	cout << s << "\n";
 	rep(i, 20) read(waves[i]);
 	read(allwave);
 	int mx_len = 0;
@@ -21,7 +26,7 @@ int main(){
 	rep(i, 20) waves[i].resize(mx_len, vector<int>(hz));
 	allwave.resize(mx_len, vector<int>(hz));
 	int cnt = 0;
-	constexpr double prop = 0.1;
+	constexpr double prop = 0.5;
 	rep(i, mx_len){
 		rep(j, hz){
 			int l = 0;

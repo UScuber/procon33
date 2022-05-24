@@ -54,7 +54,7 @@ void WaveTextReader::display(const int &frame){
 
 void export_wave(const String &txt_file_name, const int &fps, const String &audio_file_name){
 	Audio audio(U"../music/" + audio_file_name + U".wav");
-	TextWriter writer(U"../music/" + txt_file_name + U".txt");
+	TextWriter writer(U"../music/" + txt_file_name + U".txt", OpenMode::Append);
 	const int length = int(audio.lengthSec() * fps);
 	writer.writeln(length);
 	FFTResult fft;
@@ -64,8 +64,8 @@ void export_wave(const String &txt_file_name, const int &fps, const String &audi
 		audio.seekTime((double)i / fps);
 		FFT::Analyze(fft, audio);
 		for(int j = 0; j < 600; j++){
-			//const double size = Pow(fft.buffer[j], 0.6) * 1000;
-			const double size = fft.buffer[j] * 3000 * 4;
+			const double size = Pow(fft.buffer[j], 1.2) * 20000;
+			//const double size = fft.buffer[j] * 3000 * 4;
 			writer.write((int)size);
 			writer.write(U" ");
 		}

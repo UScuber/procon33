@@ -2,8 +2,10 @@
 
 #include "form.hpp"
 
+#define SINGLE
 
 void Main(){
+	/*
 	Console << U"どの操作を行いますか(0: 波形の解析・書き込み、1: textから波形の表示)";
 	int t;
 	Console >> t;
@@ -24,11 +26,14 @@ void Main(){
 			cnt++;
 		}
 	}
-	/*
-	for(int i = 0; i < 44; i++){
+	*/
+	const String txt_file_name = U"all";
+	TextWriter writer(U"../music/" + txt_file_name + U".txt");
+	writer.write(U"\n");
+	writer.close();
+	for(int i = 0; i < 20; i++){
 		const String audio_file_name = U"J{:0>2}"_fmt(i + 1);
-		const String txt_file_name = U"J{}"_fmt(i);
 		export_wave(txt_file_name, 30, audio_file_name);
 	}
-	*/
+	export_wave(txt_file_name, 30, U"J01--20");
 }
