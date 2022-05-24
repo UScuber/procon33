@@ -10,25 +10,27 @@ void read(vector<vector<int>> &res){
 	res.assign(n, vector<int>(hz));
 	rep(i, n) rep(j, hz) cin >> res[i][j];
 }
+vector<vector<vector<int>>> waves(20);
+vector<vector<int>> allwave;
 int main(){
-	vector<vector<int>> wave1, wave2, wave12;
-	read(wave1);
-	read(wave2);
-	read(wave12);
-	const int mx_len = max({ wave1.size(), wave2.size(), wave12.size() });
-	wave1.resize(mx_len, vector<int>(hz));
-	wave2.resize(mx_len, vector<int>(hz));
-	wave12.resize(mx_len, vector<int>(hz));
+	rep(i, 20) read(waves[i]);
+	read(allwave);
+	int mx_len = 0;
+	rep(i, 20) mx_len = max(mx_len, (int)waves[i].size());
+	mx_len = max(mx_len, (int)allwave.size());
+	rep(i, 20) waves[i].resize(mx_len, vector<int>(hz));
+	allwave.resize(mx_len, vector<int>(hz));
 	int cnt = 0;
-	constexpr double prop = 0.3;
+	constexpr double prop = 0.1;
 	rep(i, mx_len){
 		rep(j, hz){
-			const int l = wave1[i][j] + wave2[i][j];
-			const int r = wave12[i][j];
+			int l = 0;
+			rep(k, 20) l += waves[k][i][j];
+			const int r = allwave[i][j];
 			const int d = abs(r - l);
-			if(d > 4 && l * prop > r){
+			if(d > 10 && l * prop > r){
 				cnt++;
-				cout << l << " " << r << "\n";
+				//cout << l << " " << r << "\n";
 			}
 		}
 	}

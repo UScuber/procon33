@@ -22,8 +22,8 @@ void WaveForm::update(const Font &font, bool force_update){
 }
 
 
-void WaveTextReader::import_wave(const String &file_name){
-	reader = TextReader(U"../music/" + file_name + U".txt");
+void WaveTextReader::import_wave(const String &txt_file_name){
+	reader = TextReader(U"../music/" + txt_file_name + U".txt");
 	if(!reader.isOpen()){
 		Console << U"The file was not found";
 		return;
@@ -52,9 +52,9 @@ void WaveTextReader::display(const int &frame){
 }
 
 
-void export_wave(const String &file_name, const int &fps){
-	Audio audio = Dialog::OpenAudio();
-	TextWriter writer(U"../music/" + file_name + U".txt");
+void export_wave(const String &txt_file_name, const int &fps, const String &audio_file_name){
+	Audio audio(U"../music/" + audio_file_name + U".wav");
+	TextWriter writer(U"../music/" + txt_file_name + U".txt");
 	const int length = int(audio.lengthSec() * fps);
 	writer.writeln(length);
 	FFTResult fft;

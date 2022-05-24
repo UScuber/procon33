@@ -26,11 +26,11 @@ struct WaveTextReader {
 	Array<Array<int>> data;
 	int length;
 	double resolution;
-	void import_wave(const String &file_name);
+	void import_wave(const String &txt_file_name);
 	void display(const int &frame);
 };
 
 
 
 // 書き込みを行う
-void export_wave(const String &file_name, const int &fps);
+void export_wave(const String &txt_file_name, const int &fps, const String &audio_file_name);
