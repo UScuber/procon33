@@ -20,7 +20,7 @@ struct Wave {
   }
 };
 
-void audio_read(Wave &prm, const char *filename){
+void read_audio(Wave &prm, const char *filename){
   char tmp[24];
 
   long fmt_samples_per_sec;
@@ -53,7 +53,7 @@ void audio_read(Wave &prm, const char *filename){
   }
   fclose(fp);
 }
-void audio_write(const Wave &prm, const char *filename){
+void write_audio(const Wave &prm, const char *filename){
   FILE *fp = fopen(filename, "wb");
   assert(fp != NULL);
 
@@ -162,8 +162,8 @@ vector<Wave> separate_audio(const Wave &wave, const vector<int> &sep){
 //a.exe [import file name] [export file name] [sampling hz]
 int main(int argc, char *args[]){
   Wave prm;
-  audio_read(prm, args[1]);
+  read_audio(prm, args[1]);
   printf("bits:%d, sampling hz:%d\n", prm.bits, prm.fs);
   change_sampling_hz(prm, std::stoi(args[3]));
-  audio_write(prm, args[2]);
+  write_audio(prm, args[2]);
 }
