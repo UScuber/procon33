@@ -1,7 +1,7 @@
 #include <thread>
 #include <future>
 #include "library.hpp"
-using namespace std;
+using std::pair;
 
 constexpr double limit_time = 60.0 * 2;
 
@@ -77,18 +77,18 @@ void solve(){
       if(spend_time > limit_time) break;
     }
     cnt += thread_num * tasks_num;
-    future<pair<ll, RndInfo>> threads[thread_num];
+    std::future<pair<ll, RndInfo>> threads[thread_num];
     rep(i, thread_num){
       rep(j, tasks_num){
         rnd_create(rnd_arrays[i][j]);
       }
-      threads[i] = async(solve_one_thread, rnd_arrays[i]);
+      threads[i] = std::async(solve_one_thread, rnd_arrays[i]);
     }
     RndInfo best_change;
     ll good_score = infl;
     rep(i, thread_num){
       ll score; RndInfo res;
-      tie(score, res) = threads[i].get();
+      std::tie(score, res) = threads[i].get();
       if(good_score > score){
         good_score = score;
         best_change = res;
@@ -135,8 +135,6 @@ void solve(){
 
 int main(){
   srand(time(NULL));
-  cin.tie(nullptr);
-  ios::sync_with_stdio(false);
 
   read();
 

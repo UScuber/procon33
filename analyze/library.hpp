@@ -4,32 +4,38 @@
 #include <cassert>
 #include <cmath>
 #include <time.h>
+#include "audio_array.hpp"
 #define rep(i, n) for(int i = 0; i < (n); i++)
 using ll = long long;
 using uint = unsigned int;
 using std::vector;
-using std::max;
-using std::min;
+using std::max; using std::min;
+using std::cout; using std::cin;
+using std::cerr;
 
 constexpr int inf = (unsigned int)-1 >> 1;
 constexpr ll infl = (unsigned long long)-1 >> 1;
 
 constexpr int n = 44*2; //candidate arrays
 constexpr int m = 20; //select num
-constexpr int fps = 30;
+//constexpr int fps = 30;
+constexpr int hz = 12000; //sampling hz[48k->12k]
 constexpr int tot_time = 10; //[s]
-constexpr int tot_frame = fps * tot_time;
-constexpr int dhz = 600;
-constexpr int ans_length = tot_frame * 2;
+constexpr int tot_frame = 98651; //max size of arrays[i]
+//constexpr int dhz = 600;
+//constexpr int ans_length = tot_frame * 2;
+constexpr int ans_length = hz * 10;
 static_assert(m <= n);
-static_assert(fps <= tot_frame);
+static_assert(hz <= tot_frame);
 constexpr double PI = 3.141592653589793238;
 
 // 数列の値の型
 using Val_Type = int;
 
-Val_Type arrays[n][tot_frame][dhz];
-Val_Type problem[ans_length][dhz] = {};
+//Val_Type arrays[n][tot_frame]; //audio_array.hpp
+int audio_length[n] = {};
+Val_Type problem[ans_length] = {};
+int problem_length = 0;
 
 struct Data {
   int idx; //札の種類
@@ -54,33 +60,28 @@ inline int rnd(const int &l, const int &r) noexcept{
 }
 
 // 波のあるランダムな値を生成
-void make_rnd_array(Val_Type v[dhz]){
-  int first_hz = rnd(6, 18);
-  rep(i, dhz){
-    double arc = (1 + cos((double)i / first_hz)) * 4.5;
-    arc *= arc;
-    v[i] = arc * rnd(7, 14)/10.0;
-    if(i % 50 == 0) first_hz++;
-  }
+void make_rnd_array(Val_Type &v){
+  const int first_hz = rnd(6, 18);
+  double arc = (1 + cos(0 / first_hz)) * 4.5;
+  arc *= arc;
+  v = arc * rnd(7, 14)/10.0;
 }
 
 // 1次元配列の加算・減算
-inline constexpr void add(Val_Type a[dhz], const Val_Type b[dhz]) noexcept{
-  rep(i, dhz) a[i] += b[i];
+inline constexpr void add(Val_Type &a, const Val_Type &b) noexcept{
+  a += b;
 }
-inline constexpr void sub(Val_Type a[dhz], const Val_Type b[dhz]) noexcept{
-  rep(i, dhz) a[i] -= b[i];
+inline constexpr void sub(Val_Type &a, const Val_Type &b) noexcept{
+  a -= b;
 }
 
 // 問題の数列から数字を引いたやつのスコアを計算する
-ll calc_score(const Val_Type a[ans_length][dhz]) noexcept{
+ll calc_score(const Val_Type a[ans_length]) noexcept{
   ll score = 0;
   rep(i, ans_length){
     Val_Type tot = 0;
-    rep(j, dhz){
-      //tot += a[i][j] * a[i][j];
-      tot += abs(a[i][j]);
-    }
+    //tot += a[i] * a[i];
+    tot += abs(a[i]);
     score += tot;
   }
   return score;
@@ -91,15 +92,18 @@ namespace File {
 
 void read_values(std::istream &is){
   rep(i, n){
+    audio_length[i] = tot_frame;
     rep(j, tot_frame){
-      rep(k, dhz){
-        is >> arrays[i][j][k];
-        //arrays[i][j][k] *= 1.0 - (m-2) * -0.3/18;
+      if(arrays[i][j] == inf){
+        audio_length[i] = j; break;
       }
     }
   }
   rep(i, ans_length){
-    rep(j, dhz) is >> problem[i][j];
+    is >> problem[i];
+    if(problem[i] == inf){
+      problem_length = i; break;
+    }
   }
   rep(i, m) is >> answer[i].idx;
   rep(i, m) is >> answer[i].pos;
@@ -122,13 +126,13 @@ struct RndInfo {
 
 Data best[m];
 int used_idx[n] = {};
-Val_Type best_sub[ans_length][dhz];
-Val_Type temp_arr[ans_length][dhz];
+Val_Type best_sub[ans_length];
+Val_Type temp_arr[ans_length];
 
 ll best_score = infl;
 
 void init(){
-  memcpy(best_sub, problem, sizeof(Val_Type) * ans_length * dhz);
+  memcpy(best_sub, problem, sizeof(Val_Type) * ans_length);
   // 最初は適当に値を入れておく
   rep(i, m){
     best[i].idx = i;
@@ -143,7 +147,7 @@ void init(){
   }
   best_score = calc_score(best_sub);
   
-  std::cerr << "First Score: " << best_score << "\n";
+  cerr << "First Score: " << best_score << "\n";
 }
 
 inline void rnd_create(RndInfo &change) noexcept{
@@ -153,8 +157,8 @@ inline void rnd_create(RndInfo &change) noexcept{
     change.idx = rnd(0, m);
     change.nxt_idx = best[change.idx].idx;
     change.pos = rnd(0, tot_frame);
-    change.st = rnd(0, tot_frame - fps);
-    change.len = rnd(fps, tot_frame - change.st + 1);
+    change.st = rnd(0, tot_frame - hz);
+    change.len = rnd(hz, tot_frame - change.st + 1);
   }
   // select other wav and swap and change pos
   else{
@@ -162,8 +166,8 @@ inline void rnd_create(RndInfo &change) noexcept{
     change.nxt_idx = rnd(0, n);
     while(used_idx[change.nxt_idx]) change.nxt_idx = rnd(0, n);
     change.pos = rnd(0, tot_frame);
-    change.st = rnd(0, tot_frame - fps);
-    change.len = rnd(fps, tot_frame - change.st + 1);
+    change.st = rnd(0, tot_frame - hz);
+    change.len = rnd(hz, tot_frame - change.st + 1);
   }
 }
 inline RndInfo rnd_create() noexcept{
@@ -173,22 +177,18 @@ inline RndInfo rnd_create() noexcept{
 }
 
 // a = arrays[idx][][], b = best_sub[][]
-inline constexpr void calc_range_score_sub(const Val_Type a[][dhz], const Val_Type b[][dhz], const int &range, ll &score) noexcept{
+inline constexpr void calc_range_score_sub(const Val_Type a[], const Val_Type b[], const int &range, ll &score) noexcept{
   rep(i, range){
-    rep(j, dhz){
-      score -= abs(b[i][j]);
-      const Val_Type d = b[i][j] - a[i][j];
-      score += abs(d);
-    }
+    score -= abs(b[i]);
+    const Val_Type d = b[i] - a[i];
+    score += abs(d);
   }
 }
-inline constexpr void calc_range_score_add(const Val_Type a[][dhz], const Val_Type b[][dhz], const int &range, ll &score) noexcept{
+inline constexpr void calc_range_score_add(const Val_Type a[], const Val_Type b[], const int &range, ll &score) noexcept{
   rep(i, range){
-    rep(j, dhz){
-      score -= abs(b[i][j]);
-      const Val_Type d = b[i][j] + a[i][j];
-      score += abs(d);
-    }
+    score -= abs(b[i]);
+    const Val_Type d = b[i] + a[i];
+    score += abs(d);
   }
 }
 
@@ -196,8 +196,8 @@ inline constexpr ll calc_one_changed_ans(const RndInfo &info) noexcept{
   const Data &pre = best[info.idx];
   const int info_rig = info.pos + info.len;
   const int pre_rig = pre.pos + pre.len;
-  const Val_Type (*arr_info)[dhz] = arrays[info.nxt_idx] + info.st;
-  const Val_Type (*arr_pre)[dhz] = arrays[pre.idx] + pre.st;
+  const Val_Type *arr_info = arrays[info.nxt_idx] + info.st;
+  const Val_Type *arr_pre = arrays[pre.idx] + pre.st;
   ll score = best_score;
   // cross
   if(max(info.pos, pre.pos) < min(info_rig, pre_rig)){
@@ -229,11 +229,9 @@ inline constexpr ll calc_one_changed_ans(const RndInfo &info) noexcept{
     const int sl = max(pre.pos - info.pos, 0);
     const int sr = max(info.pos - pre.pos, 0);
     rep(i, range){
-      rep(j, dhz){
-        score -= abs(best_sub[i+leftest][j]);
-        const Val_Type d = best_sub[i+leftest][j] - arr_info[i+sl][j] + arr_pre[i+sr][j];
-        score += abs(d);
-      }
+      score -= abs(best_sub[i+leftest]);
+      const Val_Type d = best_sub[i+leftest] - arr_info[i+sl] + arr_pre[i+sr];
+      score += abs(d);
     }
   }
   // not cross
@@ -264,3 +262,11 @@ void update_values(const RndInfo &info){
 }
 
 }; // namespace solver
+
+
+struct ios_do_not_sync {
+  ios_do_not_sync(){
+    std::cin.tie(nullptr);
+    std::ios::sync_with_stdio(false);
+  }
+} ios_do_not_sync_instance;

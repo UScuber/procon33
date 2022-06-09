@@ -1,5 +1,4 @@
 #include "library.hpp"
-using namespace std;
 
 constexpr double limit_time = 60.0 / 6;
 
@@ -74,8 +73,6 @@ void solve(){
 
 int main(){
   srand(time(NULL));
-  cin.tie(nullptr);
-  ios::sync_with_stdio(false);
 
   read();
 
