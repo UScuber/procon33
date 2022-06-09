@@ -25,7 +25,7 @@ int main(){
     length = std::max({ length, waves[i][0].L, waves[i][1].L });
   }
   printf("max length: %d\n", length);
-  sprintf(buf, "constexpr int arrays[n*2][%d] = {\n", length);
+  sprintf(buf, "constexpr int arrays[88][%d] = {\n", length);
   fwrite(buf, 1, strlen(buf), fp);
   for(int lang = 0; lang < 2; lang++){
     for(int i = 0; i < n; i++){

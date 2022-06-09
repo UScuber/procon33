@@ -4,7 +4,12 @@
 #include <cassert>
 #include <cmath>
 #include <time.h>
+#define TEST
+#ifdef TEST
+#include "audio_array_temp.hpp"
+#else
 #include "audio_array.hpp"
+#endif
 #define rep(i, n) for(int i = 0; i < (n); i++)
 using ll = long long;
 using uint = unsigned int;
