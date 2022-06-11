@@ -1,3 +1,4 @@
+/*
 #include "library.hpp"
 using namespace std;
 
@@ -75,4 +76,14 @@ int main(){
   cout << "\n";
   rep(i, m) cout << answer[i].len << " ";
   cout << "\n";
+}
+*/
+#include <stdio.h>
+#include "../audio/wave.hpp"
+int main(){
+  Wave wave;
+  read_audio(wave, "./problem.wav");
+  change_sampling_hz(wave, 12000);
+  for(const auto &x : wave.data) printf("%d ", x);
+  printf("%d\n", (unsigned int)-1 >> 1);
 }
