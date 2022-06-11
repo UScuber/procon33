@@ -102,7 +102,7 @@ void change_sampling_hz(Wave &prm, int fs){
   assert(prm.fs % fs == 0);
   const int p = prm.fs / fs;
   prm.fs = fs;
-  std::vector<int> new_data(prm.L);
+  std::vector<int> new_data(prm.L / p);
   for(int i = 0; i < prm.L / p; i++){
     //int tot = 0;
     //for(int j = 0; j < p; j++) tot += prm[i*p + j];
