@@ -23,13 +23,9 @@ constexpr ll infl = (unsigned long long)-1 >> 1;
 
 constexpr int n = 44*2; //candidate arrays
 constexpr int m = 20; //select num
-//constexpr int fps = 30;
 constexpr int hz = 12000; //sampling hz[48k->12k]
-constexpr int tot_time = 10; //[s]
 constexpr int tot_frame = 98651; //max size of arrays[i]
-//constexpr int dhz = 600;
-//constexpr int ans_length = tot_frame * 2;
-constexpr int ans_length = hz * 10;
+constexpr int ans_length = hz * 8;
 static_assert(m <= n);
 static_assert(hz <= tot_frame);
 constexpr double PI = 3.141592653589793238;
@@ -40,7 +36,7 @@ using Val_Type = int;
 //Val_Type arrays[n][tot_frame]; //audio_array.hpp
 int audio_length[n] = {};
 Val_Type problem[ans_length] = {};
-int problem_length = 0;
+int problem_length = ans_length;
 
 struct Data {
   int idx; //札の種類
@@ -100,20 +96,25 @@ void read_values(std::istream &is){
     audio_length[i] = tot_frame;
     rep(j, tot_frame){
       if(arrays[i][j] == inf){
-        audio_length[i] = j; break;
+        audio_length[i] = j;
+        break;
       }
     }
   }
   rep(i, ans_length){
     is >> problem[i];
     if(problem[i] == inf){
-      problem_length = i; break;
+      problem_length = i;
+      problem[i] = 0;
+      break;
     }
   }
+  /*
   rep(i, m) is >> answer[i].idx;
   rep(i, m) is >> answer[i].pos;
   rep(i, m) is >> answer[i].st;
   rep(i, m) is >> answer[i].len;
+  */
 }
 
 }; // namespace File
@@ -132,7 +133,6 @@ struct RndInfo {
 Data best[m];
 int used_idx[n] = {};
 Val_Type best_sub[ans_length];
-Val_Type temp_arr[ans_length];
 
 ll best_score = infl;
 
@@ -143,7 +143,7 @@ void init(){
     best[i].idx = i;
     best[i].pos = 0;
     best[i].st = 0;
-    best[i].len = tot_frame;
+    best[i].len = min(problem_length, audio_length[best[i].idx]);
     used_idx[i] = 1;
     // best_subの計算
     rep(j, best[i].len){
@@ -161,18 +161,30 @@ inline void rnd_create(RndInfo &change) noexcept{
   if(t == 0){
     change.idx = rnd(0, m);
     change.nxt_idx = best[change.idx].idx;
-    change.pos = rnd(0, tot_frame);
-    change.st = rnd(0, tot_frame - hz);
-    change.len = rnd(hz, tot_frame - change.st + 1);
+    //change.pos = rnd(0, tot_frame);
+    //change.st = rnd(0, tot_frame - hz);
+    //change.len = rnd(hz, tot_frame - change.st + 1);
+    change.len = rnd(hz, min(problem_length, audio_length[change.nxt_idx]) + 1);
+    change.st = rnd(0, audio_length[change.nxt_idx] - change.len + 1);
+    change.pos = rnd(0, problem_length - change.len + 1);
+    assert(change.pos + change.len <= problem_length);
+    assert(change.st + change.len <= audio_length[change.nxt_idx]);
   }
   // select other wav and swap and change pos
   else{
     change.idx = rnd(0, m);
     change.nxt_idx = rnd(0, n);
-    while(used_idx[change.nxt_idx]) change.nxt_idx = rnd(0, n);
-    change.pos = rnd(0, tot_frame);
-    change.st = rnd(0, tot_frame - hz);
-    change.len = rnd(hz, tot_frame - change.st + 1);
+    while(used_idx[change.nxt_idx % (n/2)]){
+      change.nxt_idx = rnd(0, n);
+    }
+    //change.pos = rnd(0, tot_frame);
+    //change.st = rnd(0, tot_frame - hz);
+    //change.len = rnd(hz, tot_frame - change.st + 1);
+    change.len = rnd(hz, min(problem_length, audio_length[change.nxt_idx]) + 1);
+    change.st = rnd(0, audio_length[change.nxt_idx] - change.len + 1);
+    change.pos = rnd(0, problem_length - change.len + 1);
+    assert(change.pos + change.len <= problem_length);
+    assert(change.st + change.len <= audio_length[change.nxt_idx]);
   }
 }
 inline RndInfo rnd_create() noexcept{
@@ -226,7 +238,7 @@ inline constexpr ll calc_one_changed_ans(const RndInfo &info) noexcept{
     else{
       const int leftest = max(info.pos, pre_rig);
       const int s = max(pre_rig - info.pos, 0);
-      calc_range_score_sub(arr_info+s, best_sub-leftest, info_rig-leftest, score);
+      calc_range_score_sub(arr_info+s, best_sub+leftest, info_rig-leftest, score);
     }
     // middle
     const int leftest = max(info.pos, pre.pos);
@@ -258,8 +270,8 @@ void update_values(const RndInfo &info){
     sub(best_sub[i + info.pos], arrays[info.nxt_idx][i + info.st]);
   }
   // update info
-  used_idx[best[info.idx].idx]--;
-  used_idx[info.nxt_idx]++;
+  used_idx[best[info.idx].idx % (n/2)]--;
+  used_idx[info.nxt_idx % (n/2)]++;
   best[info.idx].idx = info.nxt_idx;
   best[info.idx].pos = info.pos;
   best[info.idx].st = info.st;

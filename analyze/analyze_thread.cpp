@@ -3,7 +3,7 @@
 #include "library.hpp"
 using std::pair;
 
-constexpr double limit_time = 60.0 * 2;
+constexpr double limit_time = 60.0 * 5;
 
 
 void read(){
@@ -112,8 +112,11 @@ void solve(){
 
   // output result
   rep(i, m){
-    cout << best[i].idx << " " << best[i].pos << "\n";
+    if(best[i].idx < n/2) cout << "J" << best[i].idx+1;
+    else cout << "E" << best[i].idx-44+1;
+    cout << " " << best[i].pos * 4 << "\n";
   }
+  /*
   cout << "\n";
   int diff_num = 0;
   rep(i, m){
@@ -128,6 +131,7 @@ void solve(){
     cout << best[i].idx << " " << best[i].pos << "\n";
   }
   cerr << "Diff: " << diff_num << "/" << m << "\n";
+  */
 }
 
 }; // namespace solver
