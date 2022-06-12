@@ -161,30 +161,25 @@ inline void rnd_create(RndInfo &change) noexcept{
   if(t == 0){
     change.idx = rnd(0, m);
     change.nxt_idx = best[change.idx].idx;
-    //change.pos = rnd(0, tot_frame);
-    //change.st = rnd(0, tot_frame - hz);
-    //change.len = rnd(hz, tot_frame - change.st + 1);
     change.len = rnd(hz, min(problem_length, audio_length[change.nxt_idx]) + 1);
     change.st = rnd(0, audio_length[change.nxt_idx] - change.len + 1);
     change.pos = rnd(0, problem_length - change.len + 1);
-    assert(change.pos + change.len <= problem_length);
-    assert(change.st + change.len <= audio_length[change.nxt_idx]);
+    //assert(change.pos + change.len <= problem_length);
+    //assert(change.st + change.len <= audio_length[change.nxt_idx]);
   }
   // select other wav and swap and change pos
   else{
     change.idx = rnd(0, m);
     change.nxt_idx = rnd(0, n);
-    while(used_idx[change.nxt_idx % (n/2)]){
+    //J<=>Eの変更も可
+    while(used_idx[change.nxt_idx % (n/2)] && change.idx%(n/2) != change.nxt_idx%(n/2)){
       change.nxt_idx = rnd(0, n);
     }
-    //change.pos = rnd(0, tot_frame);
-    //change.st = rnd(0, tot_frame - hz);
-    //change.len = rnd(hz, tot_frame - change.st + 1);
     change.len = rnd(hz, min(problem_length, audio_length[change.nxt_idx]) + 1);
     change.st = rnd(0, audio_length[change.nxt_idx] - change.len + 1);
     change.pos = rnd(0, problem_length - change.len + 1);
-    assert(change.pos + change.len <= problem_length);
-    assert(change.st + change.len <= audio_length[change.nxt_idx]);
+    //assert(change.pos + change.len <= problem_length);
+    //assert(change.st + change.len <= audio_length[change.nxt_idx]);
   }
 }
 inline RndInfo rnd_create() noexcept{
@@ -193,7 +188,6 @@ inline RndInfo rnd_create() noexcept{
   return change;
 }
 
-// a = arrays[idx][][], b = best_sub[][]
 inline constexpr void calc_range_score_sub(const Val_Type a[], const Val_Type b[], const int &range, ll &score) noexcept{
   rep(i, range){
     score -= abs(b[i]);
@@ -264,10 +258,12 @@ void update_values(const RndInfo &info){
   // update best_sub
   const Data &pre = best[info.idx];
   rep(i, pre.len){
-    add(best_sub[i + pre.pos], arrays[pre.idx][i + pre.st]);
+    //add(best_sub[i + pre.pos], arrays[pre.idx][i + pre.st]);
+    best_sub[i + pre.pos] += arrays[pre.idx][i + pre.st];
   }
   rep(i, info.len){
-    sub(best_sub[i + info.pos], arrays[info.nxt_idx][i + info.st]);
+    //sub(best_sub[i + info.pos], arrays[info.nxt_idx][i + info.st]);
+    best_sub[i + info.pos] -= arrays[info.nxt_idx][i + info.st];
   }
   // update info
   used_idx[best[info.idx].idx % (n/2)]--;
