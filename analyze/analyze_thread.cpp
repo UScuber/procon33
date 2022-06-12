@@ -8,9 +8,12 @@ constexpr double limit_time = 60.0 * 5;
 
 void read(){
   File::read_values(cin);
-  // output answer_idx, pos
-  rep(i, m){
-    cout << answer[i].idx << " " << answer[i].pos << "\n";
+  // output answer_idx
+  if(has_answer) rep(i, m){
+    cout << answer[i].idx << "\n";
+    if(answer[i].idx < n/2) cout << "J" << answer[i].idx+1;
+    else cout << "E" << answer[i].idx-44+1;
+    cout << "\n";
   }
   cout << "\n";
 }
@@ -116,22 +119,24 @@ void solve(){
     else cout << "E" << best[i].idx-44+1;
     cout << " " << best[i].pos * 4 << "\n";
   }
-  /*
-  cout << "\n";
-  int diff_num = 0;
-  rep(i, m){
-    bool ok = false;
-    rep(j, m){
-        if(best[i].idx == answer[j].idx){
-        ok = true; break;
+  if(has_answer){
+    cout << "\n";
+    int diff_num = 0;
+    rep(i, m){
+      bool ok = false;
+      rep(j, m){
+          if(best[i].idx == answer[j].idx){
+          ok = true; break;
+        }
       }
+      if(ok) continue;
+      diff_num++;
+      if(best[i].idx < n/2) cout << "J" << best[i].idx+1;
+      else cout << "E" << best[i].idx-44+1;
+      cout << " ";
     }
-    if(ok) continue;
-    diff_num++;
-    cout << best[i].idx << " " << best[i].pos << "\n";
+    cerr << "Diff: " << diff_num << "/" << m << "\n";
   }
-  cerr << "Diff: " << diff_num << "/" << m << "\n";
-  */
 }
 
 }; // namespace solver

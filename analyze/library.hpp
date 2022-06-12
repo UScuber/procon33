@@ -4,8 +4,7 @@
 #include <cassert>
 #include <cmath>
 #include <time.h>
-#define TEST
-#ifdef TEST
+#ifndef RELESE
 #include "audio_array_temp.hpp"
 #else
 #include "audio_array.hpp"
@@ -37,6 +36,7 @@ using Val_Type = int;
 int audio_length[n] = {};
 Val_Type problem[ans_length] = {};
 int problem_length = ans_length;
+bool has_answer = true;
 
 struct Data {
   int idx; //札の種類
@@ -68,22 +68,12 @@ void make_rnd_array(Val_Type &v){
   v = arc * rnd(7, 14)/10.0;
 }
 
-// 1次元配列の加算・減算
-inline constexpr void add(Val_Type &a, const Val_Type &b) noexcept{
-  a += b;
-}
-inline constexpr void sub(Val_Type &a, const Val_Type &b) noexcept{
-  a -= b;
-}
-
 // 問題の数列から数字を引いたやつのスコアを計算する
-ll calc_score(const Val_Type a[ans_length]) noexcept{
+constexpr ll calc_score(const Val_Type a[ans_length]) noexcept{
   ll score = 0;
   rep(i, ans_length){
-    Val_Type tot = 0;
-    //tot += a[i] * a[i];
-    tot += abs(a[i]);
-    score += tot;
+    //score += a[i] * a[i];
+    score += abs(a[i]);
   }
   return score;
 }
@@ -109,12 +99,8 @@ void read_values(std::istream &is){
       break;
     }
   }
-  /*
   rep(i, m) is >> answer[i].idx;
-  rep(i, m) is >> answer[i].pos;
-  rep(i, m) is >> answer[i].st;
-  rep(i, m) is >> answer[i].len;
-  */
+  if(cin.eof()) has_answer = false;
 }
 
 }; // namespace File
@@ -147,7 +133,7 @@ void init(){
     used_idx[i] = 1;
     // best_subの計算
     rep(j, best[i].len){
-      sub(best_sub[j + best[i].pos], arrays[best[i].idx][j + best[i].st]);
+      best_sub[j + best[i].pos] -= arrays[best[i].idx][j + best[i].st];
     }
   }
   best_score = calc_score(best_sub);
@@ -164,22 +150,18 @@ inline void rnd_create(RndInfo &change) noexcept{
     change.len = rnd(hz, min(problem_length, audio_length[change.nxt_idx]) + 1);
     change.st = rnd(0, audio_length[change.nxt_idx] - change.len + 1);
     change.pos = rnd(0, problem_length - change.len + 1);
-    //assert(change.pos + change.len <= problem_length);
-    //assert(change.st + change.len <= audio_length[change.nxt_idx]);
   }
   // select other wav and swap and change pos
   else{
     change.idx = rnd(0, m);
     change.nxt_idx = rnd(0, n);
-    //J<=>Eの変更も可
-    while(used_idx[change.nxt_idx % (n/2)] && change.idx%(n/2) != change.nxt_idx%(n/2)){
+    //J<=>Eの変更
+    while(used_idx[change.nxt_idx%(n/2)] && best[change.idx].idx%(n/2) != change.nxt_idx%(n/2)){
       change.nxt_idx = rnd(0, n);
     }
     change.len = rnd(hz, min(problem_length, audio_length[change.nxt_idx]) + 1);
     change.st = rnd(0, audio_length[change.nxt_idx] - change.len + 1);
     change.pos = rnd(0, problem_length - change.len + 1);
-    //assert(change.pos + change.len <= problem_length);
-    //assert(change.st + change.len <= audio_length[change.nxt_idx]);
   }
 }
 inline RndInfo rnd_create() noexcept{
@@ -189,18 +171,10 @@ inline RndInfo rnd_create() noexcept{
 }
 
 inline constexpr void calc_range_score_sub(const Val_Type a[], const Val_Type b[], const int &range, ll &score) noexcept{
-  rep(i, range){
-    score -= abs(b[i]);
-    const Val_Type d = b[i] - a[i];
-    score += abs(d);
-  }
+  rep(i, range) score += abs(b[i] - a[i]) - abs(b[i]);
 }
 inline constexpr void calc_range_score_add(const Val_Type a[], const Val_Type b[], const int &range, ll &score) noexcept{
-  rep(i, range){
-    score -= abs(b[i]);
-    const Val_Type d = b[i] + a[i];
-    score += abs(d);
-  }
+  rep(i, range) score += abs(b[i] + a[i]) - abs(b[i]);
 }
 
 inline constexpr ll calc_one_changed_ans(const RndInfo &info) noexcept{
@@ -258,11 +232,9 @@ void update_values(const RndInfo &info){
   // update best_sub
   const Data &pre = best[info.idx];
   rep(i, pre.len){
-    //add(best_sub[i + pre.pos], arrays[pre.idx][i + pre.st]);
     best_sub[i + pre.pos] += arrays[pre.idx][i + pre.st];
   }
   rep(i, info.len){
-    //sub(best_sub[i + info.pos], arrays[info.nxt_idx][i + info.st]);
     best_sub[i + info.pos] -= arrays[info.nxt_idx][i + info.st];
   }
   // update info

@@ -65,7 +65,7 @@ int main(int argc, char *args[]){
     const int lang = rnd(0, 2);
     used |= 1LL << val;
     audio_num[i] = val;
-    sprintf(buf, "./JKspeech/%c%02d.wav", (lang == JA ? 'J' : 'E'), val + 1);
+    sprintf(buf, "./audio/JKspeech/%c%02d.wav", (lang == JA ? 'J' : 'E'), val + 1);
     read_audio(data[i], buf);
     info[i] = { val, lang };
   }
@@ -132,7 +132,10 @@ int main(int argc, char *args[]){
 
   // output problem information
   std::string answer = "";
-  answer += "n speech: " + std::to_string(m) + "\n\n";
+  answer += std::to_string(m) + "\n";
+  rep(i, m) answer += std::to_string(info[i].first + (info[i].second == EN)*n) + " \n"[i == m - 1];
+  rep(i, m) answer += std::to_string(st[i]) + " \n"[i == m - 1];
+  answer += "\nn speech: " + std::to_string(m) + "\n\n";
   answer += "speech: ";
   rep(i, m){
     sprintf(buf, "%c%02d", (info[i].second == JA ? 'J' : 'E'), info[i].first + 1);
