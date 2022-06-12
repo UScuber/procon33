@@ -7,7 +7,9 @@ void read(){
   File::read_values(cin);
   // output answer_idx
   if(has_answer) rep(i, m){
-    cout << answer[i].idx << "\n";
+    if(answer[i].idx < n/2) cout << "J" << answer[i].idx+1;
+    else cout << "E" << answer[i].idx-44+1;
+    cout << "\n";
   }
   cout << "\n";
 }
