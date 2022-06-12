@@ -8,4 +8,5 @@ procon33.*
 
 analyze/in.txt
 analyze/out.txt
+analyze/test
 *.exe
