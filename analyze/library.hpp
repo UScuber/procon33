@@ -21,6 +21,7 @@ constexpr int inf = (unsigned int)-1 >> 1;
 constexpr ll infl = (unsigned long long)-1 >> 1;
 
 constexpr int n = 44*2; //candidate arrays
+constexpr int half_n = n / 2;
 constexpr int m = 20; //select num
 constexpr int hz = 12000; //sampling hz[48k->12k]
 constexpr int tot_frame = 98651; //max size of arrays[i]
@@ -60,18 +61,10 @@ inline int rnd(const int &l, const int &r) noexcept{
   return randxor() % (r - l) + l;
 }
 
-// 波のあるランダムな値を生成
-void make_rnd_array(Val_Type &v){
-  const int first_hz = rnd(6, 18);
-  double arc = (1 + cos(0 / first_hz)) * 4.5;
-  arc *= arc;
-  v = arc * rnd(7, 14)/10.0;
-}
-
 // 問題の数列から数字を引いたやつのスコアを計算する
 constexpr ll calc_score(const Val_Type a[ans_length]) noexcept{
   ll score = 0;
-  rep(i, ans_length){
+  rep(i, problem_length){
     //score += a[i] * a[i];
     score += abs(a[i]);
   }
@@ -117,7 +110,7 @@ struct RndInfo {
 };
 
 Data best[m];
-int used_idx[n] = {};
+int used_idx[half_n] = {};
 Val_Type best_sub[ans_length];
 
 ll best_score = infl;
@@ -155,8 +148,7 @@ inline void rnd_create(RndInfo &change) noexcept{
   else{
     change.idx = rnd(0, m);
     change.nxt_idx = rnd(0, n);
-    //J<=>Eの変更
-    while(used_idx[change.nxt_idx%(n/2)] && best[change.idx].idx%(n/2) != change.nxt_idx%(n/2)){
+    while(used_idx[change.nxt_idx % half_n] && best[change.idx].idx % half_n != change.nxt_idx % half_n){
       change.nxt_idx = rnd(0, n);
     }
     change.len = rnd(hz, min(problem_length, audio_length[change.nxt_idx]) + 1);
@@ -238,8 +230,8 @@ void update_values(const RndInfo &info){
     best_sub[i + info.pos] -= arrays[info.nxt_idx][i + info.st];
   }
   // update info
-  used_idx[best[info.idx].idx % (n/2)]--;
-  used_idx[info.nxt_idx % (n/2)]++;
+  used_idx[best[info.idx].idx % half_n]--;
+  used_idx[info.nxt_idx % half_n]++;
   best[info.idx].idx = info.nxt_idx;
   best[info.idx].pos = info.pos;
   best[info.idx].st = info.st;

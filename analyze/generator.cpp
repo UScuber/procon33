@@ -3,7 +3,7 @@
 #include <string.h>
 #include <time.h>
 #include <direct.h>
-#include "wave.hpp"
+#include "audio/wave.hpp"
 #define rep(i, n) for(int i = 0; i < (n); i++)
 using std::vector;
 using std::cin; using std::cerr;
@@ -15,7 +15,6 @@ enum { JA, EN };
 void write_text(const char *txt, const char *filename){
   FILE *fp = fopen(filename, "w");
   assert(fp != NULL);
-
   fwrite(txt, 1, strlen(txt), fp);
   fclose(fp);
 }
