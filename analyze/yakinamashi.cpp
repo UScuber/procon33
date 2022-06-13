@@ -8,7 +8,7 @@ void read(){
   // output answer_idx
   if(has_answer) rep(i, m){
     if(answer[i].idx < half_n) cout << "J" << answer[i].idx+1;
-    else cout << "E" << answer[i].idx-44+1;
+    else cout << "E" << answer[i].idx-half_n+1;
     cout << "\n";
   }
   cout << "\n";
@@ -70,7 +70,7 @@ void solve(){
   // output result
   rep(i, m){
     if(awesome[i].idx < half_n) cout << "J" << awesome[i].idx+1;
-    else cout << "E" << awesome[i].idx-44+1;
+    else cout << "E" << awesome[i].idx-half_n+1;
     cout << " " << awesome[i].pos * 4 << "\n";
   }
   if(has_answer){
@@ -86,7 +86,7 @@ void solve(){
       if(ok) continue;
       diff_num++;
       if(awesome[i].idx < half_n) cout << "J" << awesome[i].idx+1;
-      else cout << "E" << awesome[i].idx-44+1;
+      else cout << "E" << awesome[i].idx-half_n+1;
       cout << " ";
     }
     cerr << "Diff: " << diff_num << "/" << m << "\n";
