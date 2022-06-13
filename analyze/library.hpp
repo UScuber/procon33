@@ -4,7 +4,7 @@
 #include <cassert>
 #include <cmath>
 #include <time.h>
-#ifndef RELESE
+#ifndef RELEASE
 #include "audio_array_temp.hpp"
 #else
 #include "audio_array.hpp"
