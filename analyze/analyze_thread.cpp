@@ -10,7 +10,7 @@ void read(){
   File::read_values(cin);
   // output answer_idx
   if(has_answer) rep(i, m){
-    if(answer[i].idx < n/2) cout << "J" << answer[i].idx+1;
+    if(answer[i].idx < half_n) cout << "J" << answer[i].idx+1;
     else cout << "E" << answer[i].idx-44+1;
     cout << "\n";
   }
@@ -114,7 +114,7 @@ void solve(){
 
   // output result
   rep(i, m){
-    if(best[i].idx < n/2) cout << "J" << best[i].idx+1;
+    if(best[i].idx < half_n) cout << "J" << best[i].idx+1;
     else cout << "E" << best[i].idx-44+1;
     cout << " " << best[i].pos * 4 << "\n";
   }
@@ -130,7 +130,7 @@ void solve(){
       }
       if(ok) continue;
       diff_num++;
-      if(best[i].idx < n/2) cout << "J" << best[i].idx+1;
+      if(best[i].idx < half_n) cout << "J" << best[i].idx+1;
       else cout << "E" << best[i].idx-44+1;
       cout << " ";
     }
