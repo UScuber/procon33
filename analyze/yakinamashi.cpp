@@ -28,8 +28,8 @@ void solve(){
   double last_upd_time = -1;
   int steps = 0;
 
-  constexpr double t0 = 1e4;
-  constexpr double t1 = 4e2;
+  constexpr double t0 = 4e3;
+  constexpr double t1 = 1e2;
   double temp = t0;
   double spend_time = 0;
   const clock_t start_time = clock();
@@ -44,7 +44,7 @@ void solve(){
     }
     const RndInfo change = rnd_create();
     const ll score = calc_one_changed_ans(change);
-    if(awesome_score < score){
+    if(awesome_score > score){
       awesome_score = score;
       best_score = score;
       update_values(change);
@@ -52,7 +52,7 @@ void solve(){
       cerr << "u";
       update_num++;
       last_upd_time = spend_time;
-    }else if(exp((double)(score - best_score) / temp) > rnd(0,1024)/1024.0){
+    }else if(exp((double)(best_score - score) / temp) > rnd(0,1024)/1024.0){
       best_score = score;
       update_values(change);
       cerr << "u";

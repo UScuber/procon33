@@ -29,15 +29,18 @@ ll awesome_score = infl;
 
 pair<ll, RndInfo> solve_one_thread(const RndInfo ran[tasks_num]){
   ll best_sc = infl;
-  RndInfo best_change;
+  int best_change_idx = -1;
+  //RndInfo best_change;
   rep(i, tasks_num){
     const ll score = calc_one_changed_ans(ran[i]);
     if(best_sc > score){
       best_sc = score;
-      best_change = ran[i];
+      best_change_idx = i;
+      //best_change = ran[i];
     }
   }
-  return { best_sc, best_change };
+  return { best_sc, ran[best_change_idx] };
+  //return { best_sc, best_change };
 }
 
 void solve(){
@@ -49,8 +52,8 @@ void solve(){
   double last_upd_time = -1;
   int steps = 0;
 
-  constexpr double t0 = 1e4;
-  constexpr double t1 = 4e2;
+  constexpr double t0 = 3e3;
+  constexpr double t1 = 1e2;
   double temp = t0;
   double spend_time = 0;
   const clock_t start_time = clock();
@@ -66,7 +69,7 @@ void solve(){
     }
     const RndInfo change = rnd_create();
     const ll score = calc_one_changed_ans(change);
-    if(awesome_score < score){
+    if(awesome_score > score){
       awesome_score = score;
       best_score = score;
       update_values(change);
@@ -74,7 +77,7 @@ void solve(){
       cerr << "u";
       update_num++;
       last_upd_time = spend_time;
-    }else if(exp((double)(score - best_score) / temp) > rnd(0,1024)/1024.0){
+    }else if(exp((double)(best_score - score) / temp) > rnd(0,1024)/1024.0){
       best_score = score;
       update_values(change);
       cerr << "u";
@@ -86,8 +89,8 @@ void solve(){
   memcpy(best, awesome, sizeof(best));
   rep(i, half_n) used_idx[i] = 0;
   rep(i, m) used_idx[best[i].idx]++;
-
   cerr << "\n";
+  cerr << "Score: " << best_score << "\n";
   cerr << "Start Multi Thread\n";
   // 山登り法(multi thread)
   double temp_time = spend_time;

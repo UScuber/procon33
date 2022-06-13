@@ -47,8 +47,12 @@ struct Data {
 };
 Data answer[m];
 
-
-inline uint randxor() noexcept{
+inline uint randxor32() noexcept{
+  static uint x = rand() | rand() << 16;
+  x ^= x << 13; x ^= x >> 17;
+  return x ^= x << 5;
+}
+inline uint randxor128() noexcept{
   static uint x = rand() | rand() << 16;
   static uint y = rand() | rand() << 16;
   static uint z = rand() | rand() << 16;
@@ -58,7 +62,7 @@ inline uint randxor() noexcept{
 }
 // returns random [l, r)
 inline int rnd(const int &l, const int &r) noexcept{
-  return randxor() % (r - l) + l;
+  return randxor128() % (r - l) + l;
 }
 
 // 問題の数列から数字を引いたやつのスコアを計算する
