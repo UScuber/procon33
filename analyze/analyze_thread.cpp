@@ -1,7 +1,6 @@
 #include <thread>
 #include <future>
 #include "library.hpp"
-using std::pair;
 
 constexpr double limit_time = 60.0 * 5;
 
@@ -26,17 +25,20 @@ constexpr int tasks_num = 512 * 8;
 RndInfo rnd_arrays[thread_num][tasks_num];
 
 
-pair<ll, RndInfo> solve_one_thread(const RndInfo ran[tasks_num]){
+std::pair<ll, RndInfo> solve_one_thread(const RndInfo ran[tasks_num]){
   ll best_sc = infl;
-  RndInfo best_change;
+  int best_change_idx = -1;
+  //RndInfo best_change;
   rep(i, tasks_num){
     const ll score = calc_one_changed_ans(ran[i]);
     if(best_sc > score){
       best_sc = score;
-      best_change = ran[i];
+      best_change_idx = i;
+      //best_change = ran[i];
     }
   }
-  return { best_sc, best_change };
+  return { best_sc, ran[best_change_idx] };
+  //return { best_sc, best_change };
 }
 
 void solve(){
@@ -79,7 +81,7 @@ void solve(){
       if(spend_time > limit_time) break;
     }
     cnt += thread_num * tasks_num;
-    std::future<pair<ll, RndInfo>> threads[thread_num];
+    std::future<std::pair<ll, RndInfo>> threads[thread_num];
     rep(i, thread_num){
       rep(j, tasks_num){
         rnd_create(rnd_arrays[i][j]);
