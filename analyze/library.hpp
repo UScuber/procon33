@@ -65,13 +65,13 @@ inline int rnd(const int &l, const int &r) noexcept{
   return randxor128() % (r - l) + l;
 }
 
+#define Weight(x) abs(x)
+//#define Weight(x) ((ll)x*x)
+
 // 問題の数列から数字を引いたやつのスコアを計算する
 constexpr ll calc_score(const Val_Type a[ans_length]) noexcept{
   ll score = 0;
-  rep(i, problem_length){
-    //score += a[i] * a[i];
-    score += abs(a[i]);
-  }
+  rep(i, problem_length) score += Weight(a[i]);
   return score;
 }
 
@@ -167,10 +167,10 @@ inline RndInfo rnd_create() noexcept{
 }
 
 inline constexpr void calc_range_score_sub(const Val_Type a[], const Val_Type b[], const int &range, ll &score) noexcept{
-  rep(i, range) score += abs(b[i] - a[i]) - abs(b[i]);
+  rep(i, range) score += Weight(b[i] - a[i]) - Weight(b[i]);
 }
 inline constexpr void calc_range_score_add(const Val_Type a[], const Val_Type b[], const int &range, ll &score) noexcept{
-  rep(i, range) score += abs(b[i] + a[i]) - abs(b[i]);
+  rep(i, range) score += Weight(b[i] + a[i]) - Weight(b[i]);
 }
 
 inline constexpr ll calc_one_changed_ans(const RndInfo &info) noexcept{
@@ -210,9 +210,9 @@ inline constexpr ll calc_one_changed_ans(const RndInfo &info) noexcept{
     const int sl = max(pre.pos - info.pos, 0);
     const int sr = max(info.pos - pre.pos, 0);
     rep(i, range){
-      score -= abs(best_sub[i+leftest]);
+      score -= Weight(best_sub[i+leftest]);
       const Val_Type d = best_sub[i+leftest] - arr_info[i+sl] + arr_pre[i+sr];
-      score += abs(d);
+      score += Weight(d);
     }
   }
   // not cross
