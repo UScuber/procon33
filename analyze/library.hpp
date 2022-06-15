@@ -63,7 +63,7 @@ inline int rnd(const int &l, const int &r) noexcept{
 }
 
 #define Weight(x) abs(x)
-//#define Weight(x) ((ll)x*x)
+//#define Weight(x) ((ll)(x)*(ll)(x))
 
 // 問題の数列から数字を引いたやつのスコアを計算する
 constexpr ll calc_score(const Val_Type a[ans_length]) noexcept{
