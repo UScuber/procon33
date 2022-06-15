@@ -5,19 +5,7 @@
 constexpr double limit_time = 60.0 * 5;
 
 
-void read(){
-  File::read_values(cin);
-  // output answer_idx
-  if(has_answer) rep(i, m){
-    if(answer[i].idx < half_n) cout << "J" << answer[i].idx+1;
-    else cout << "E" << answer[i].idx-half_n+1;
-    cout << "\n";
-  }
-  cout << "\n";
-}
-
-
-namespace solver {
+namespace Solver {
 
 constexpr int thread_num = 12;
 constexpr int tasks_num = 512 * 8;
@@ -28,17 +16,14 @@ RndInfo rnd_arrays[thread_num][tasks_num];
 std::pair<ll, RndInfo> solve_one_thread(const RndInfo ran[tasks_num]){
   ll best_sc = infl;
   int best_change_idx = -1;
-  //RndInfo best_change;
   rep(i, tasks_num){
     const ll score = calc_one_changed_ans(ran[i]);
     if(best_sc > score){
       best_sc = score;
       best_change_idx = i;
-      //best_change = ran[i];
     }
   }
   return { best_sc, ran[best_change_idx] };
-  //return { best_sc, best_change };
 }
 
 void solve(){
@@ -114,30 +99,7 @@ void solve(){
   cerr << "Time per loop: " << (spend_time-temp_time)/cnt << "\n";
   cerr << "Final Score: " << best_score << "\n";
 
-  // output result
-  rep(i, m){
-    if(best[i].idx < half_n) cout << "J" << best[i].idx+1;
-    else cout << "E" << best[i].idx-half_n+1;
-    cout << " " << best[i].pos * 4 << "\n";
-  }
-  if(has_answer){
-    cout << "\n";
-    int diff_num = 0;
-    rep(i, m){
-      bool ok = false;
-      rep(j, m){
-          if(best[i].idx == answer[j].idx){
-          ok = true; break;
-        }
-      }
-      if(ok) continue;
-      diff_num++;
-      if(best[i].idx < half_n) cout << "J" << best[i].idx+1;
-      else cout << "E" << best[i].idx-half_n+1;
-      cout << " ";
-    }
-    cerr << "Diff: " << diff_num << "/" << m << "\n";
-  }
+  File::output_result(best);
 }
 
 }; // namespace solver
@@ -145,8 +107,6 @@ void solve(){
 
 int main(){
   srand(time(NULL));
-
-  read();
-
-  solver::solve();
+  File::read_values();
+  Solver::solve();
 }

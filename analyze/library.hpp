@@ -26,14 +26,11 @@ constexpr int m = 20; //select num
 constexpr int hz = 12000; //sampling hz[48k->12k]
 constexpr int tot_frame = 98651; //max size of arrays[i]
 constexpr int ans_length = hz * 8;
-static_assert(m <= n);
-static_assert(hz <= tot_frame);
-constexpr double PI = 3.141592653589793238;
+static_assert(m <= half_n);
 
 // 数列の値の型
 using Val_Type = int;
 
-//Val_Type arrays[n][tot_frame]; //audio_array.hpp
 int audio_length[n] = {};
 Val_Type problem[ans_length] = {};
 int problem_length = ans_length;
@@ -78,7 +75,7 @@ constexpr ll calc_score(const Val_Type a[ans_length]) noexcept{
 
 namespace File {
 
-void read_values(std::istream &is){
+void read_values(){
   rep(i, n){
     audio_length[i] = tot_frame;
     rep(j, tot_frame){
@@ -89,21 +86,55 @@ void read_values(std::istream &is){
     }
   }
   rep(i, ans_length){
-    is >> problem[i];
+    std::cin >> problem[i];
     if(problem[i] == inf){
       problem_length = i;
       problem[i] = 0;
       break;
     }
   }
-  rep(i, m) is >> answer[i].idx;
+  rep(i, m) std::cin >> answer[i].idx;
   if(cin.eof()) has_answer = false;
+
+  // output answer_idx
+  if(has_answer) rep(i, m){
+    if(answer[i].idx < half_n) cout << "J" << answer[i].idx+1;
+    else cout << "E" << answer[i].idx-half_n+1;
+    cout << "\n";
+  }
+  cout << "\n";
+}
+
+void output_result(const Data best[m]){
+  rep(i, m){
+    if(best[i].idx < half_n) cout << "J" << best[i].idx+1;
+    else cout << "E" << best[i].idx-half_n+1;
+    cout << " " << best[i].pos * 4 << "\n";
+  }
+  if(has_answer){
+    cout << "\n";
+    int diff_num = 0;
+    rep(i, m){
+      bool ok = false;
+      rep(j, m){
+          if(best[i].idx == answer[j].idx){
+          ok = true; break;
+        }
+      }
+      if(ok) continue;
+      diff_num++;
+      if(best[i].idx < half_n) cout << "J" << best[i].idx+1;
+      else cout << "E" << best[i].idx-half_n+1;
+      cout << " ";
+    }
+    cerr << "Diff: " << diff_num << "/" << m << "\n";
+  }
 }
 
 }; // namespace File
 
 
-namespace solver {
+namespace Solver {
 
 struct RndInfo {
   int idx; //変更する値

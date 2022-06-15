@@ -3,18 +3,7 @@
 constexpr double limit_time = 60.0;
 
 
-void read(){
-  File::read_values(cin);
-  // output answer_idx
-  if(has_answer) rep(i, m){
-    if(answer[i].idx < half_n) cout << "J" << answer[i].idx+1;
-    else cout << "E" << answer[i].idx-half_n+1;
-    cout << "\n";
-  }
-  cout << "\n";
-}
-
-namespace solver {
+namespace Solver {
 
 void solve(){
   init();
@@ -50,30 +39,7 @@ void solve(){
   cerr << "Time per loop: " << spend_time/steps << "\n";
   cerr << "Final Score: " << best_score << "\n";
 
-  // output result
-  rep(i, m){
-    if(best[i].idx < half_n) cout << "J" << best[i].idx+1;
-    else cout << "E" << best[i].idx-half_n+1;
-    cout << " " << best[i].pos * 4 << "\n";
-  }
-  if(has_answer){
-    cout << "\n";
-    int diff_num = 0;
-    rep(i, m){
-      bool ok = false;
-      rep(j, m){
-          if(best[i].idx == answer[j].idx){
-          ok = true; break;
-        }
-      }
-      if(ok) continue;
-      diff_num++;
-      if(best[i].idx < half_n) cout << "J" << best[i].idx+1;
-      else cout << "E" << best[i].idx-half_n+1;
-      cout << " ";
-    }
-    cerr << "Diff: " << diff_num << "/" << m << "\n";
-  }
+  File::output_result(best);
 }
 
 }; // namespace solver
@@ -81,8 +47,6 @@ void solve(){
 
 int main(){
   srand(time(NULL));
-
-  read();
-
-  solver::solve();
+  File::read_values();
+  Solver::solve();
 }
