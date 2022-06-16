@@ -7,8 +7,8 @@ constexpr double limit_time = 60.0 * 5;
 
 namespace Solver {
 
-constexpr int thread_num = 12;
-constexpr int tasks_num = 512 * 8;
+constexpr int thread_num = 12 + 4;
+constexpr int tasks_num = 512 * 8 / 4;
 
 RndInfo rnd_arrays[thread_num][tasks_num];
 
@@ -37,7 +37,7 @@ void solve(){
   double last_upd_time = -1;
   int steps = 0;
 
-  constexpr double t0 = 3e3;
+  constexpr double t0 = 4e3;
   constexpr double t1 = 1e2;
   double temp = t0;
   double spend_time = 0;
@@ -49,8 +49,9 @@ void solve(){
     if(!(steps & mask)){
       spend_time = clock() - start_time;
       spend_time /= CLOCKS_PER_SEC;
-      if(spend_time > limit_time*2/5) break;
-      temp = pow(t0, 1.0-spend_time/(limit_time*2/5)) * pow(t1, spend_time/(limit_time*2/5));
+      if(spend_time > limit_time*3/5) break;
+      //temp = pow(t0, 1.0-spend_time/(limit_time*3/5)) * pow(t1, spend_time/(limit_time*3/5));
+      temp = pow(t0, 1.0-spend_time/(limit_time)) * pow(t1, spend_time/(limit_time));
     }
     const RndInfo change = rnd_create();
     const ll score = calc_one_changed_ans(change);
@@ -85,6 +86,7 @@ void solve(){
       spend_time = clock() - start_time;
       spend_time /= CLOCKS_PER_SEC;
       if(spend_time > limit_time) break;
+      temp = pow(t0, 1.0-spend_time/(limit_time)) * pow(t1, spend_time/(limit_time));
     }
     cnt += thread_num * tasks_num;
     std::future<std::pair<ll, RndInfo>> threads[thread_num];
@@ -104,7 +106,22 @@ void solve(){
         best_change = res;
       }
     }
-    
+    if(awesome_score > good_score){
+      awesome_score = good_score;
+      best_score = good_score;
+      update_values(best_change);
+      memcpy(awesome, best, sizeof(awesome));
+      cerr << "u";
+      update_num++;
+      last_upd_time = spend_time;
+    }else if(exp((double)(best_score - good_score) / temp) > rnd(0,1024)/1024.0){
+      best_score = good_score;
+      update_values(best_change);
+      cerr << "u";
+      update_num++;
+      last_upd_time = spend_time;
+    }
+    /*
     if(good_score < best_score){
       best_score = good_score;
       update_values(best_change);
@@ -112,7 +129,12 @@ void solve(){
       update_num++;
       last_upd_time = spend_time;
     }
+    */
   }
+  best_score = awesome_score;
+  memcpy(best, awesome, sizeof(best));
+  rep(i, half_n) used_idx[i] = 0;
+  rep(i, m) used_idx[best[i].idx]++;
   cerr << "\n";
   cerr << "Steps: " << steps << "\n";
   cerr << "Updated: " << update_num << "\n";

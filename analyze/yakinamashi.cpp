@@ -18,7 +18,7 @@ void solve(){
   int steps = 0;
 
   constexpr double t0 = 4e3;
-  constexpr double t1 = 1e2;
+  constexpr double t1 = 1.2e2;
   double temp = t0;
   double spend_time = 0;
   const clock_t start_time = clock();
