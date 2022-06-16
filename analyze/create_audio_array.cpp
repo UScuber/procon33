@@ -1,13 +1,12 @@
 #include <algorithm>
 #include <string>
 #include <string.h>
-#include "../audio/wave.hpp"
+#include "audio/wave.hpp"
 using std::vector;
 
 FILE *fp;
 
 constexpr int n = 44;
-constexpr int sampling_hz = 12000;
 constexpr int inf = (unsigned int)-1 >> 1;
 char buf[64];
 Wave waves[n][2];
@@ -16,12 +15,12 @@ int main(){
   fp = fopen("./audio_array.hpp", "w");
   assert(fp != NULL);
   for(int i = 0; i < n; i++){
-    sprintf(buf, "../audio/JKspeech/J%02d.wav", i+1);
+    sprintf(buf, "audio/JKspeech/J%02d.wav", i+1);
     read_audio(waves[i][0], buf);
-    change_sampling_hz(waves[i][0], sampling_hz);
-    sprintf(buf, "../audio/JKspeech/E%02d.wav", i+1);
+    change_sampling_hz(waves[i][0], analyze_sampling_hz);
+    sprintf(buf, "audio/JKspeech/E%02d.wav", i+1);
     read_audio(waves[i][1], buf);
-    change_sampling_hz(waves[i][1], sampling_hz);
+    change_sampling_hz(waves[i][1], analyze_sampling_hz);
     length = std::max({ length, waves[i][0].L, waves[i][1].L });
   }
   printf("max length: %d\n", length);

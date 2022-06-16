@@ -34,7 +34,7 @@ inline int rnd(const int &l, const int &r) noexcept{
 }
 
 constexpr int n = 44;
-constexpr int hz = 48000;
+constexpr int hz = default_sampling_hz;
 int audio_num[n];
 int m, sep_num;
 double time_limit;
@@ -119,6 +119,9 @@ int main(int argc, char *args[]){
   // output problem audios
   cerr << "output problem audios\n";
   sprintf(buf, "./%s/problem.wav", args[1]);
+  write_audio(problem, buf);
+  change_sampling_hz(problem, analyze_sampling_hz);
+  sprintf(buf, "./%s/problem%d.wav", args[1], analyze_sampling_hz);
   write_audio(problem, buf);
   rep(i, sep_num){
     sprintf(buf, "./%s/sep%d.wav", args[1], i + 1);

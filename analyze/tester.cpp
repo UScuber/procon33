@@ -15,7 +15,7 @@ int main(int argc, char *args[]){
     puts("arguments are not correct");
     return 1;
   }
-  change_sampling_hz(wave, 12000);
+  change_sampling_hz(wave, analyze_sampling_hz);
   for(const auto &x : wave.data) printf("%d ", x);
   printf("%d\n", (unsigned int)-1 >> 1);
   if(argc == 2){
