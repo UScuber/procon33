@@ -1,12 +1,5 @@
-.vs
 .vscode
-Intermediate/
-procon33.sln
-procon33/.editorconfig
-procon33/App/
-procon33.*
 
-analyze/in.txt
-analyze/out.txt
 analyze/test
+*.txt
 *.exe
