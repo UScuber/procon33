@@ -1,7 +1,4 @@
-use once_cell::sync::Lazy;
-use rand::distributions::uniform::SampleRange;
 use rand::prelude::*;
-use std::array;
 use std::cmp::min;
 use std::cmp::max;
 use crate::file_reader::*;
@@ -9,7 +6,7 @@ use crate::file_reader::*;
 const INF: i32 = i32::MAX;
 const INFL: i64 = i64::MAX;
 const HALF_N: usize = N / 2;
-const HZ: i32 = ANALYZE_SAMP_HZ; //sampling hz[48k->12k]
+const HZ: usize = ANALYZE_SAMP_HZ; //sampling hz[48k->12k]
 //const TOT_FRAME: i32 = ANALYZE_MAX_LEN; //max size of arrays[i]
 
 //constexpr int ans_length = hz * 8;
@@ -17,10 +14,10 @@ const HZ: i32 = ANALYZE_SAMP_HZ; //sampling hz[48k->12k]
 // 数列の値の型
 type Val_Type = i32;
 
-static problem: [i32; ANS_LEN] = Lazy::new(|| read_problem_audio());
-static problem_length: usize = Lazy::new(|| read_problem_length());
-static arrays: [[i32; ANALYZE_MAX_LEN]; N] = Lazy::new(|| read_audio_arrays());
-static audio_length: [usize; N] = Lazy::new(|| read_audio_length());
+//static problem: Lazy<[i32; ANS_LEN]> = Lazy::new(|| read_problem_audio());
+//static problem_length: Lazy<usize> = Lazy::new(|| read_problem_length());
+//static arrays: Lazy<[[i32; ANALYZE_MAX_LEN]; N]> = Lazy::new(|| read_audio_arrays());
+//static audio_length: Lazy<[usize; N]> = Lazy::new(|| read_audio_length());
 
 //int audio_length[n] = {};
 //let audio_length = [0; n];
@@ -28,42 +25,35 @@ static audio_length: [usize; N] = Lazy::new(|| read_audio_length());
 //int problem_length = ans_length;
 //bool has_answer = true;
 
+#[derive(Debug, Clone, Copy)]
 struct Data {
-  pub idx: i32, //札の種類
-  pub pos: i32, //貼り付け位置
-  pub st: i32, //札の再生開始位置
-  pub len: i32, //札の再生の長さ
+  idx: usize, //札の種類
+  pos: usize, //貼り付け位置
+  st: usize, //札の再生開始位置
+  len: usize, //札の再生の長さ
 }
 struct RndInfo {
-  pub idx: usize, //変更する値
-  pub pos: i32, //変更後の貼り付け位置
-  pub nxt_idx: i32, //新しく更新する札
-  pub st: i32, //次の札の再生開始位置
-  pub len: i32, //次の札の再生の長さ
+  idx: usize, //変更する値
+  pos: usize, //変更後の貼り付け位置
+  nxt_idx: usize, //新しく更新する札
+  st: usize, //次の札の再生開始位置
+  len: usize, //次の札の再生の長さ
+}
+impl RndInfo {
+  const fn new() -> Self {
+    Self { idx:0, pos:0, nxt_idx:0, st:0, len:0 }
+  }
 }
 //Data answer[m];
 
-/*
-inline uint randxor32() noexcept{
-  static uint x = rand() | rand() << 16;
-  x ^= x << 13; x ^= x >> 17;
-  return x ^= x << 5;
-}
-// returns random [l, r)
-inline int rnd(const int &l, const int &r) noexcept{
-  return randxor128() % (r - l) + l;
-}
-#define Weight(x) abs(x)
-//#define Weight(x) ((ll)(x)*(ll)(x))
-*/
 
-const fn weight(x: i32) -> i32 {
+const fn weight(x: i32) -> i64 {
   //(x as i64) * (x as i64)
-  x.abs()
+  x.abs() as i64
 }
 
 // 問題の数列から数字を引いたやつのスコアを計算する
-const fn calc_score(a: [Val_Type; ANS_LEN]) -> i64 {
+fn calc_score(a: [Val_Type; ANS_LEN]) -> i64 {
   let mut score: i64 = 0;
   for i in 0..ANS_LEN {
     score += weight(a[i]);
@@ -136,22 +126,33 @@ void output_result(const Data best[m]){
 
 
 struct Solver {
+  problem: [i32; ANS_LEN],
+  problem_length: usize,
+  arrays: [[i32; ANALYZE_MAX_LEN]; N],
+  audio_length: [usize; N],
+
   best: [Data; M],
   used_idx: [bool; M],
   best_sub: [Val_Type; ANS_LEN],
   best_score: i64,
-  //temp
-
 }
 impl Solver {
-  const fn new() -> Self {
-    let mut best_sub = problem;
-    let mut best = [Data{idx:0,pos:0,st:0,len:0}; M];
+  fn new() -> Self {
+    let problem: [i32; ANS_LEN] = read_problem_audio();
+    let problem_length: usize = read_problem_length();
+    let arrays: [[i32; ANALYZE_MAX_LEN]; N] = read_audio_arrays();
+    let audio_length: [usize; N] = read_audio_length();
+    
+    let mut best_sub: [Val_Type; ANS_LEN] = [0; ANS_LEN];
+    for i in 0..ANS_LEN {
+      best_sub[i] = problem[i];
+    }
+    let mut best: [Data; M] = [Data{idx:0,pos:0,st:0,len:0}; M];
     let mut used_idx = [false; M];
     for i in 0..M {
       best[i].idx = i;
       best[i].len = min(problem_length, audio_length[best[i].idx]);
-      used_idx[i] = 1;
+      used_idx[i] = true;
       for j in 0..best[i].len {
         best_sub[j + best[i].pos] -= arrays[best[i].idx][j + best[i].st];
       }
@@ -159,50 +160,38 @@ impl Solver {
     let best_score = calc_score(best_sub);
     println!("First Score: {}", best_score);
     Self {
-      best,
-      used_idx,
-      best_sub,
-      best_score,
+      problem, problem_length, arrays, audio_length,
+      best, used_idx, best_sub, best_score,
     }
   }
 
-  const fn rnd_create(&self, change: &mut RndInfo, rng: &mut ThreadRng){
+  fn rnd_create(&self, change: &mut RndInfo, rng: &mut ThreadRng){
     let t = rng.gen_range(0..10) >= 2;
-    if t == 0 {
-      change.idx = rng.gen_range(0..m);
+    if t == false {
+      change.idx = rng.gen_range(0..M);
       change.nxt_idx = self.best[change.idx].idx;
-      change.len = rng.gen_range(hz..=min(problem_length, audio_length[change.nxt_idx]));
-      change.st = rng.gen_range(0..=audio_length[change.nxt_idx]-change.len);
-      change.pos = rng.gen_range(0..=problem_length-change.len);
+      change.len = rng.gen_range(HZ..=min(self.problem_length, self.audio_length[change.nxt_idx]));
+      change.st = rng.gen_range(0..=self.audio_length[change.nxt_idx]-change.len);
+      change.pos = rng.gen_range(0..=self.problem_length-change.len);
     }
     else{
-      change.idx = rng.gen_range(0..m);
+      change.idx = rng.gen_range(0..M);
       change.nxt_idx = rng.gen_range(0..N);
       while self.used_idx[change.nxt_idx % HALF_N] && self.best[change.idx].idx % HALF_N != change.nxt_idx % HALF_N {
         change.nxt_idx = rng.gen_range(0..N);
       }
-      change.len = rng.gen_range(hz..=min(problem_length, audio_length[change.nxt_idx]));
-      change.st = rng.gen_range(0..=audio_length[change.nxt_idx]-change.len);
-      change.pos = rng.gen_range(0..=problem_length-change.len);
+      change.len = rng.gen_range(HZ..=min(self.problem_length, self.audio_length[change.nxt_idx]));
+      change.st = rng.gen_range(0..=self.audio_length[change.nxt_idx]-change.len);
+      change.pos = rng.gen_range(0..=self.problem_length-change.len);
     }
   }
-  const fn rnd_create(&self, rng: &mut ThreadRng) -> RndInfo {
-    let mut change = RndInfo;
-    self.rnd_create(change, rng);
+  fn rnd_create2(&self, rng: &mut ThreadRng) -> RndInfo {
+    let mut change = RndInfo::new();
+    self.rnd_create(&mut change, rng);
     return change;
   }
-  const fn calc_range_score_sub(&self, arr_idx: usize, info: RndInfo, range: usize, score: &mut i64){
-    for i in 0..range {
-      score += weight(self.best_sub[i + info.pos] - arrays[arr_idx][i + info.st]) - weight(self.best_sub[i + info.pos]);
-    }
-  }
-  const fn calc_range_score_add(&self, arr_idx: usize, info: RndInfo, range: usize, score: &mut i64){
-    for i in 0..range {
-      score += weight(self.best_sub[i + info.pos] + arrays[arr_idx][i + info.st]) - weight(self.best_sub[i + info.pos]);
-    }
-  }
-  const fn calc_one_changed_ans(&self, info: RndInfo) -> i64 {
-    let pre = self.best[info.idx];
+  fn calc_one_changed_ans(&self, info: RndInfo) -> i64 {
+    let pre: &Data = &self.best[info.idx];
     let info_rig = info.pos + info.len;
     let pre_rig = pre.pos + pre.len;
     let mut score = self.best_score;
@@ -210,107 +199,53 @@ impl Solver {
       // 左側がleft
       if info.pos <= pre.pos {
         let rightest = min(info_rig, pre.pos);
+        for i in 0..rightest-info.pos {
+          score += weight(self.best_sub[i + info.pos] - self.arrays[info.nxt_idx][i + info.st]) - weight(self.best_sub[i + info.pos]);
+        }
       }
       // 左側がright
       else{
         let rightest = min(pre_rig, info.pos);
+        for i in 0..rightest-pre.pos {
+          score += weight(self.best_sub[i + pre.pos] + self.arrays[pre.idx][i + info.st]) - weight(self.best_sub[i + pre.pos]);
+        }
       }
       // 右側がright
       if info_rig <= pre_rig {
-        
+        let leftest = max(pre.pos, info_rig);
+        let s = max(info_rig - pre.pos, 0);
+        for i in 0..pre_rig-leftest {
+          score += weight(self.best_sub[i + leftest] + self.arrays[pre.idx][i + s + pre.st]) - weight(self.best_sub[i + leftest]);
+        }
       }
       // 右側がleft
       else{
-
+        let leftest = max(info.pos, pre_rig);
+        let s = max(pre_rig - info.pos, 0);
+        for i in 0..info_rig-leftest {
+          score += weight(self.best_sub[i + leftest] - self.arrays[info.nxt_idx][i + s + info.st]) - weight(self.best_sub[i + leftest]);
+        }
       }
       // middle
+      let leftest = max(info.pos, pre.pos);
+      let range = min(info_rig, pre_rig) - leftest;
+      let sl = max(pre.pos - info.pos, 0);
+      let sr = max(info.pos - pre.pos, 0);
+      for i in 0..range {
+        score -= weight(self.best_sub[i + leftest]);
+        let d: Val_Type = self.best_sub[i + leftest] - self.arrays[info.nxt_idx][i + sl + info.st] + self.arrays[pre.idx][i + sr + pre.st];
+        score += weight(d);
+      }
     }
     else{
-
+      for i in 0..info.len {
+        score += weight(self.best_sub[i + info.pos] - self.arrays[info.nxt_idx][i + info.st]) - weight(self.best_sub[i + info.pos]);
+      }
+      for i in 0..pre.len {
+        score += weight(self.best_sub[i + pre.pos] + self.arrays[pre.idx][i + pre.st]) - weight(self.best_sub[i + pre.pos]);
+      }
     }
-  }
-}
-inline constexpr void calc_range_score_sub(const Val_Type a[], const Val_Type b[], const int &range, ll &score) noexcept{
-  rep(i, range) score += Weight(b[i] - a[i]) - Weight(b[i]);
-}
-inline constexpr void calc_range_score_add(const Val_Type a[], const Val_Type b[], const int &range, ll &score) noexcept{
-  rep(i, range) score += Weight(b[i] + a[i]) - Weight(b[i]);
-}
-
-inline constexpr ll calc_one_changed_ans(const RndInfo &info) noexcept{
-  const Data &pre = best[info.idx];
-  const int info_rig = info.pos + info.len;
-  const int pre_rig = pre.pos + pre.len;
-  const Val_Type *arr_info = arrays[info.nxt_idx] + info.st;
-  const Val_Type *arr_pre = arrays[pre.idx] + pre.st;
-  ll score = best_score;
-  // cross
-  if(max(info.pos, pre.pos) < min(info_rig, pre_rig)){
-    // 左側がleft
-    if(info.pos <= pre.pos){
-      const int rightest = min(info_rig, pre.pos);
-      calc_range_score_sub(arr_info, best_sub+info.pos, rightest-info.pos, score);
-    }
-    // 左側がright
-    else{
-      const int rightest = min(pre_rig, info.pos);
-      calc_range_score_add(arr_pre, best_sub+pre.pos, rightest-pre.pos, score);
-    }
-    // 右側がright
-    if(info_rig <= pre_rig){
-      const int leftest = max(pre.pos, info_rig);
-      const int s = max(info_rig - pre.pos, 0);
-      calc_range_score_add(arr_pre+s, best_sub+leftest, pre_rig-leftest, score);
-    }
-    // 右側がleft
-    else{
-      const int leftest = max(info.pos, pre_rig);
-      const int s = max(pre_rig - info.pos, 0);
-      calc_range_score_sub(arr_info+s, best_sub+leftest, info_rig-leftest, score);
-    }
-    // middle
-    const int leftest = max(info.pos, pre.pos);
-    const int range = min(info_rig, pre_rig) - leftest;
-    const int sl = max(pre.pos - info.pos, 0);
-    const int sr = max(info.pos - pre.pos, 0);
-    rep(i, range){
-      score -= Weight(best_sub[i+leftest]);
-      const Val_Type d = best_sub[i+leftest] - arr_info[i+sl] + arr_pre[i+sr];
-      score += Weight(d);
-    }
-  }
-  // not cross
-  else{
-    calc_range_score_sub(arr_info, best_sub+info.pos, info.len, score);
-    calc_range_score_add(arr_pre, best_sub+pre.pos, pre.len, score);
-  }
-  return score;
-}
-
-
-fn update_values(info: RndInfo){
-  let &pre: Data = best[info.idx];
-  for i in 0..pre.len {
-    
+    return score;
   }
 }
 
-void update_values(const RndInfo &info){
-  // update best_sub
-  const Data &pre = best[info.idx];
-  rep(i, pre.len){
-    best_sub[i + pre.pos] += arrays[pre.idx][i + pre.st];
-  }
-  rep(i, info.len){
-    best_sub[i + info.pos] -= arrays[info.nxt_idx][i + info.st];
-  }
-  // update info
-  used_idx[best[info.idx].idx % half_n]--;
-  used_idx[info.nxt_idx % half_n]++;
-  best[info.idx].idx = info.nxt_idx;
-  best[info.idx].pos = info.pos;
-  best[info.idx].st = info.st;
-  best[info.idx].len = info.len;
-}
-
-} // namespace solver

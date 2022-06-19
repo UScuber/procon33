@@ -1,6 +1,5 @@
 use std::io::*;
 use std::fs;
-//static arrays: Vec<Vec<i32>> = Lazy::new(|| read_array());
 
 pub const N: usize = 44*2;
 pub const M: usize = 20;
@@ -47,9 +46,9 @@ pub fn read_audio_arrays() -> [[i32; ANALYZE_MAX_LEN]; N] {
   }
   return audios;
 }
-pub fn read_problem_audio() -> [i32; ANALYZE_MAX_LEN] {
+pub fn read_problem_audio() -> [i32; ANS_LEN] {
   let mut content: String = fs::read_to_string("problem.txt").expect("could not read problem.txt");
-  let mut audio = [0; ANALYZE_MAX_LEN];
+  let mut audio = [0; ANS_LEN];
   for i in 0..ANS_LEN {
     //audio[i] = read();
     audio[i] = read_int(&mut content);
@@ -60,23 +59,24 @@ pub fn read_problem_audio() -> [i32; ANALYZE_MAX_LEN] {
   }
   return audio;
 }
-pub fn read_answer_idx() -> [i32; M] {
-  let mut answer: [i32; M] = [0; M];
+pub fn read_answer_idx() -> [usize; M] {
+  let mut answer: [usize; M] = [0; M];
+  let mut content: String = fs::read_to_string("answer_idx.txt").expect("could not open answer_idx.txt");
   for i in 0..M {
-    answer[i] = read();
+    answer[i] = read_int(&mut content) as usize;
   }
   return answer;
 }
 
 pub fn read_audio_length() -> [usize; N] {
   let mut length = [0 as usize; N];
-  let mut content: String = fs::read_to_string("audio_length.txt").except("could not read audio_length.txt");
+  let mut content: String = fs::read_to_string("audio_length.txt").expect("could not open audio_length.txt");
   for i in 0..N {
-    length[i] = read_int(&mut content);
+    length[i] = read_int(&mut content) as usize;
   }
   return length;
 }
 pub fn read_problem_length() -> usize {
-  let mut content: String = fs::read_to_string("problem_length.txt").except("could not read problem_length.txt");
-  return read_int(&mut content);
+  let mut content: String = fs::read_to_string("problem_length.txt").expect("could not open problem_length.txt");
+  return read_int(&mut content) as usize;
 }
