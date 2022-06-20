@@ -1,6 +1,6 @@
 #include "library.hpp"
 
-constexpr double limit_time = 60.0 * 5;
+constexpr double limit_time = 60.0 * 2;
 
 
 namespace Solver {
