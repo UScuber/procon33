@@ -4,7 +4,7 @@ mod file_reader;
 use crate::solver::*;
 
 const MASK: i32 = (1 << 7) - 1;
-const TL: f64 = 60.0 * 1.0;
+const TL: f64 = 60.0 * 3.0;
 
 fn solve(){
   let mut solver = Solver::new();

@@ -59,8 +59,9 @@ fn calc_score(a: &Box<[ValType; ANS_LEN]>) -> i64 {
 fn read_answer(answer: &mut [Data; M]){
   let mut contents = String::new();
   stdin().read_line(&mut contents).expect("could not read answer idx");
+  let v = read_vec(&contents);
   for i in 0..M {
-    answer[i].idx = read_int(&mut contents) as usize;
+    answer[i].idx = v[i] as usize;
   }
 }
 
@@ -208,6 +209,16 @@ impl Solver {
     self.best[info.idx].len = info.len;
   }
   pub fn output_result(&self){
+    println!("answer");
+    for i in 0..M {
+      if self.answer[i].idx < HALF_N {
+        print!("J{} ", self.answer[i].idx + 1);
+      }else{
+        print!("E{} ", self.answer[i].idx - HALF_N + 1);
+      }
+    }
+    println!();
+    println!("result");
     for i in 0..M {
       if self.best[i].idx < HALF_N {
         print!("J{} ", self.best[i].idx + 1);
@@ -235,5 +246,6 @@ impl Solver {
     }
     eprintln!("Diff: {}/{}", diff_num, M);
   }
+
 }
 
