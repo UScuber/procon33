@@ -38,7 +38,7 @@ void solve(){
   int steps = 0;
 
   constexpr double t0 = 4e3;
-  constexpr double t1 = 1e2;
+  constexpr double t1 = 1.2e2;
   double temp = t0;
   double spend_time = 0;
   const clock_t start_time = clock();
@@ -50,10 +50,10 @@ void solve(){
       spend_time = clock() - start_time;
       spend_time /= CLOCKS_PER_SEC;
       if(spend_time > limit_time*3/5) break;
-      //temp = pow(t0, 1.0-spend_time/(limit_time*3/5)) * pow(t1, spend_time/(limit_time*3/5));
-      temp = pow(t0, 1.0-spend_time/(limit_time)) * pow(t1, spend_time/(limit_time));
+      temp = pow(t0, 1.0-spend_time/limit_time) * pow(t1, spend_time/limit_time);
     }
-    const RndInfo change = rnd_create();
+    RndInfo change;
+    rnd_create(change);
     const ll score = calc_one_changed_ans(change);
     if(awesome_score > score){
       awesome_score = score;
@@ -66,15 +66,15 @@ void solve(){
     }else if(exp((double)(best_score - score) / temp) > rnd(0,1024)/1024.0){
       best_score = score;
       update_values(change);
-      cerr << "u";
+      //cerr << "u";
       update_num++;
       last_upd_time = spend_time;
     }
   }
-  best_score = awesome_score;
-  memcpy(best, awesome, sizeof(best));
-  rep(i, half_n) used_idx[i] = 0;
-  rep(i, m) used_idx[best[i].idx]++;
+  //best_score = awesome_score;
+  //memcpy(best, awesome, sizeof(best));
+  //used_idx = 0;
+  //rep(i, m) used_idx |= 1ULL << (best[i].idx % half_n);
   cerr << "\n";
   cerr << "Score: " << best_score << "\n";
   cerr << "Start Multi Thread\n";
@@ -86,7 +86,7 @@ void solve(){
       spend_time = clock() - start_time;
       spend_time /= CLOCKS_PER_SEC;
       if(spend_time > limit_time) break;
-      temp = pow(t0, 1.0-spend_time/(limit_time)) * pow(t1, spend_time/(limit_time));
+      temp = pow(t0, 1.0-spend_time/limit_time) * pow(t1, spend_time/limit_time);
     }
     cnt += thread_num * tasks_num;
     std::future<std::pair<ll, RndInfo>> threads[thread_num];
@@ -117,24 +117,14 @@ void solve(){
     }else if(exp((double)(best_score - good_score) / temp) > rnd(0,1024)/1024.0){
       best_score = good_score;
       update_values(best_change);
-      cerr << "u";
-      update_num++;
+      //cerr << "u";
       last_upd_time = spend_time;
     }
-    /*
-    if(good_score < best_score){
-      best_score = good_score;
-      update_values(best_change);
-      cerr << "u";
-      update_num++;
-      last_upd_time = spend_time;
-    }
-    */
   }
   best_score = awesome_score;
   memcpy(best, awesome, sizeof(best));
-  rep(i, half_n) used_idx[i] = 0;
-  rep(i, m) used_idx[best[i].idx]++;
+  used_idx = 0;
+  rep(i, m) used_idx |= 1ULL << (best[i].idx % half_n);
   cerr << "\n";
   cerr << "Steps: " << steps << "\n";
   cerr << "Updated: " << update_num << "\n";

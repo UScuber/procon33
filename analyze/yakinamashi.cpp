@@ -1,6 +1,6 @@
 #include "library.hpp"
 
-constexpr double limit_time = 60.0 * 2;
+constexpr double limit_time = 60.0 / 6;
 
 
 namespace Solver {
@@ -31,7 +31,8 @@ void solve(){
       if(spend_time > limit_time) break;
       temp = pow(t0, 1.0-spend_time/limit_time) * pow(t1, spend_time/limit_time);
     }
-    const RndInfo change = rnd_create();
+    RndInfo change;
+    rnd_create(change);
     const ll score = calc_one_changed_ans(change);
     if(awesome_score > score){
       awesome_score = score;
@@ -44,8 +45,7 @@ void solve(){
     }else if(exp((double)(best_score - score) / temp) > rnd(0,1024)/1024.0){
       best_score = score;
       update_values(change);
-      cerr << "u";
-      update_num++;
+      //cerr << "u";
       last_upd_time = spend_time;
     }
   }
