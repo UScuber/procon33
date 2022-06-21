@@ -29,9 +29,9 @@ struct Wave {
 void read_audio(Wave &prm, const char *filename){
   char tmp[24];
 
-  long fmt_samples_per_sec;
+  int fmt_samples_per_sec;
   short fmt_bits_per_sample;
-  long data_size;
+  int data_size;
 
   //wavファイルオープン
   FILE *fp = fopen(filename, "rb");
@@ -114,7 +114,6 @@ void change_sampling_hz(Wave &prm, int fs){
     //int tot = 0;
     //for(int j = 0; j < p; j++) tot += prm[i*p + j];
     //new_data[i] = tot / p;
-    //printf("%d ", i);
     new_data[i] = prm[i * p];
   }
   prm.L /= p;

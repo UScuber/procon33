@@ -63,12 +63,16 @@ inline uint randxor128() noexcept{
   uint t=(x^(x<<11));x=y;y=z;z=w; return (w=(w^(w>>19))^(t^(t>>8)));
 }
 // returns random [l, r)
-inline int rnd(const int l, const int r) noexcept{
-  return randxor32() % (r - l) + l;
+constexpr inline int rnd(const int l, const int r, uint &x) noexcept{
+  x ^= x << 13; x ^= x >> 17;
+  return (x ^= x << 5) % (r - l) + l;
+  //return randxor32() % (r - l) + l;
 }
 // returns random [0, rng)
-inline int rnd(const int rng) noexcept{
-  return randxor32() % rng;
+constexpr inline int rnd(const int rng, uint &x) noexcept{
+  x ^= x << 13; x ^= x >> 17;
+  return (x ^= x << 5) % rng;
+  //return randxor32() % rng;
 }
 
 #define Weight(x) abs(x)
@@ -158,6 +162,7 @@ ull used_idx = 0;
 Val_Type best_sub[ans_length];
 
 ll best_score = infl;
+uint seed = rand() | rand() << 16;
 
 void init(){
   memcpy(best_sub, problem, sizeof(problem));
@@ -179,25 +184,25 @@ void init(){
 }
 
 inline void rnd_create(RndInfo &change) noexcept{
-  const int t = rnd(10) >= 2;
+  const int t = rnd(10, seed) >= 2;
   // select wav and change pos
   if(t == 0){
-    change.idx = rnd(m);
+    change.idx = rnd(m, seed);
     change.nxt_idx = best[change.idx].idx;
-    change.len = rnd(hz, min(problem_length, audio_length[change.nxt_idx]) + 1);
-    change.st = rnd(audio_length[change.nxt_idx] - change.len + 1);
-    change.pos = rnd(problem_length - change.len + 1);
+    change.len = rnd(hz, min(problem_length, audio_length[change.nxt_idx]) + 1, seed);
+    change.st = rnd(audio_length[change.nxt_idx] - change.len + 1, seed);
+    change.pos = rnd(problem_length - change.len + 1, seed);
   }
   // select other wav and swap and change pos
   else{
-    change.idx = rnd(m);
-    change.nxt_idx = rnd(n);
+    change.idx = rnd(m, seed);
+    change.nxt_idx = rnd(n, seed);
     while((used_idx >> (change.nxt_idx % half_n) & 1) && best[change.idx].idx % half_n != change.nxt_idx % half_n){
-      change.nxt_idx = rnd(n);
+      change.nxt_idx = rnd(n, seed);
     }
-    change.len = rnd(hz, min(problem_length, audio_length[change.nxt_idx]) + 1);
-    change.st = rnd(audio_length[change.nxt_idx] - change.len + 1);
-    change.pos = rnd(problem_length - change.len + 1);
+    change.len = rnd(hz, min(problem_length, audio_length[change.nxt_idx]) + 1, seed);
+    change.st = rnd(audio_length[change.nxt_idx] - change.len + 1, seed);
+    change.pos = rnd(problem_length - change.len + 1, seed);
   }
 }
 
