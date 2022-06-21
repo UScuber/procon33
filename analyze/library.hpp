@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cmath>
 #include <time.h>
+#include <cstring>
 #ifndef RELEASE
 #include "audio_array_temp.hpp"
 #else
