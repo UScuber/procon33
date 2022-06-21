@@ -63,7 +63,11 @@ inline uint randxor128() noexcept{
 }
 // returns random [l, r)
 inline int rnd(const int l, const int r) noexcept{
-  return randxor128() % (r - l) + l;
+  return randxor32() % (r - l) + l;
+}
+// returns random [0, rng)
+inline int rnd(const int rng) noexcept{
+  return randxor32() % rng;
 }
 
 #define Weight(x) abs(x)
@@ -174,31 +178,26 @@ void init(){
 }
 
 inline void rnd_create(RndInfo &change) noexcept{
-  const int t = rnd(0, 10) >= 2;
+  const int t = rnd(10) >= 2;
   // select wav and change pos
   if(t == 0){
-    change.idx = rnd(0, m);
+    change.idx = rnd(m);
     change.nxt_idx = best[change.idx].idx;
     change.len = rnd(hz, min(problem_length, audio_length[change.nxt_idx]) + 1);
-    change.st = rnd(0, audio_length[change.nxt_idx] - change.len + 1);
-    change.pos = rnd(0, problem_length - change.len + 1);
+    change.st = rnd(audio_length[change.nxt_idx] - change.len + 1);
+    change.pos = rnd(problem_length - change.len + 1);
   }
   // select other wav and swap and change pos
   else{
-    change.idx = rnd(0, m);
-    change.nxt_idx = rnd(0, n);
+    change.idx = rnd(m);
+    change.nxt_idx = rnd(n);
     while((used_idx >> (change.nxt_idx % half_n) & 1) && best[change.idx].idx % half_n != change.nxt_idx % half_n){
-      change.nxt_idx = rnd(0, n);
+      change.nxt_idx = rnd(n);
     }
     change.len = rnd(hz, min(problem_length, audio_length[change.nxt_idx]) + 1);
-    change.st = rnd(0, audio_length[change.nxt_idx] - change.len + 1);
-    change.pos = rnd(0, problem_length - change.len + 1);
+    change.st = rnd(audio_length[change.nxt_idx] - change.len + 1);
+    change.pos = rnd(problem_length - change.len + 1);
   }
-}
-inline RndInfo rnd_create() noexcept{
-  RndInfo change;
-  rnd_create(change);
-  return change;
 }
 
 inline constexpr void calc_range_score_sub(const Val_Type a[], const Val_Type b[], const int range, ll &score) noexcept{
@@ -246,8 +245,7 @@ inline constexpr ll calc_one_changed_ans(const RndInfo &info) noexcept{
     const int sr = max(info.pos - pre.pos, 0);
     rep(i, range){
       score -= Weight(best_sub[i+leftest]);
-      const Val_Type d = best_sub[i+leftest] - arr_info[i+sl] + arr_pre[i+sr];
-      score += Weight(d);
+      score += Weight(best_sub[i+leftest] - arr_info[i+sl] + arr_pre[i+sr]);
     }
   }
   // not cross

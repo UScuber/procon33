@@ -22,7 +22,8 @@ void solve(){
       spend_time /= CLOCKS_PER_SEC;
       if(spend_time > limit_time) break;
     }
-    const RndInfo change = rnd_create();
+    RndInfo change;
+    rnd_create(change);
     const ll score = calc_one_changed_ans(change);
     if(best_score > score){
       best_score = score;

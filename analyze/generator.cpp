@@ -40,15 +40,16 @@ int m, sep_num;
 double time_limit;
 vector<Wave> data;
 
-//generator.exe [export directory]
+//generator.exe [export directory] [audios] [separates] [max time]
 int main(int argc, char *args[]){
-  if(argc != 2){
-    cerr << "arguments are too few\n";
+  if(argc != 5){
+    cerr << "arguments are too few or too many\n";
     return 1;
   }
   srand(time(NULL));
-  cerr << "how many audios & separates & max time? ";
-  cin >> m >> sep_num >> time_limit;
+  const int m = atoi(args[2]);
+  const int sep_num = atoi(args[3]);
+  const double time_limit = atoi(args[4]);
   _mkdir(args[1]);
   int max_time = std::max(time_limit, sep_num*0.5) * hz;
   data.resize(m);
