@@ -42,7 +42,7 @@ void solve(){
       cerr << "u";
       update_num++;
       last_upd_time = spend_time;
-    }else if(exp((double)(best_score - score) / temp) > rnd(1024, seed)/1024.0){
+    }else if(exp((double)(best_score - score) / temp) > rnd(1024)/1024.0){
       best_score = score;
       update_values(change);
       //cerr << "u";
