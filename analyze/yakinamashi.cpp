@@ -17,8 +17,8 @@ void solve(){
   double last_upd_time = -1;
   int steps = 0;
 
-  constexpr double t0 = 4e3;
-  constexpr double t1 = 1.2e2;
+  constexpr double t0 = 4e3/2;
+  constexpr double t1 = 1.2e2/2;
   double temp = t0;
   double spend_time = 0;
   const clock_t start_time = clock();
@@ -28,7 +28,7 @@ void solve(){
     if(!(steps & mask)){
       spend_time = clock() - start_time;
       spend_time /= CLOCKS_PER_SEC;
-      if(spend_time > limit_time) break;
+      if(spend_time > limit_time && spend_time-last_upd_time > 2.0) break;
       temp = pow(t0, 1.0-spend_time/limit_time) * pow(t1, spend_time/limit_time);
     }
     RndInfo change;
