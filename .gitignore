@@ -4,3 +4,4 @@ analyze/test
 analyze/audio_array.hpp
 *.txt
 *.exe
+python/output
