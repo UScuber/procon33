@@ -68,7 +68,7 @@ void solve(){
       update_values(change);
       //cerr << "u";
       update_num++;
-      last_upd_time = spend_time;
+      //last_upd_time = spend_time;
     }
   }
   //best_score = awesome_score;

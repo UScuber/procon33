@@ -183,7 +183,8 @@ void init(){
 }
 
 inline void rnd_create(RndInfo &change) noexcept{
-  const int t = rnd(10) >= 2;
+  //const int t = rnd(10) >= 1
+  /*;
   // select wav and change pos
   if(t == 0){
     change.idx = rnd(m);
@@ -193,7 +194,7 @@ inline void rnd_create(RndInfo &change) noexcept{
     change.pos = rnd(problem_length - change.len + 1);
   }
   // select other wav and swap and change pos
-  else{
+  else if(t == 1)*/{
     change.idx = rnd(m);
     change.nxt_idx = rnd(n);
     while((used_idx >> (change.nxt_idx % half_n) & 1) && best[change.idx].idx % half_n != change.nxt_idx % half_n){
@@ -203,6 +204,32 @@ inline void rnd_create(RndInfo &change) noexcept{
     change.st = rnd(audio_length[change.nxt_idx] - change.len + 1);
     change.pos = rnd(problem_length - change.len + 1);
   }
+  /*
+  // change len
+  else if(t == 2){
+    change.idx = rnd(m);
+    change.nxt_idx = best[change.idx].idx;
+    change.st = best[change.idx].st;
+    change.pos = best[change.idx].pos;
+    change.len = rnd(hz, min(problem_length-change.pos, audio_length[change.nxt_idx]-change.st) + 1);
+  }
+  // change pos
+  else if(t == 3){
+    change.idx = rnd(m);
+    change.nxt_idx = best[change.idx].idx;
+    change.st = best[change.idx].st;
+    change.len = best[change.idx].len;
+    change.pos = rnd(problem_length - change.len + 1);
+  }
+  // change st
+  else if(t == 4){
+    change.idx = rnd(m);
+    change.nxt_idx = best[change.idx].idx;
+    change.len = best[change.idx].len;
+    change.pos = best[change.idx].pos;
+    change.st = rnd(min(audio_length[change.nxt_idx] - change.len, problem_length-change.pos) + 1);
+  }
+  */
 }
 
 inline constexpr void calc_range_score_sub(const Val_Type a[], const Val_Type b[], const int range, ll &score) noexcept{

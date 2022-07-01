@@ -17,8 +17,8 @@ void solve(){
   double last_upd_time = -1;
   int steps = 0;
 
-  constexpr double t0 = 4e3/2;
-  constexpr double t1 = 1.2e2/2;
+  constexpr double t0 = 4e3;
+  constexpr double t1 = 1.2e2;
   double temp = t0;
   double spend_time = 0;
   const clock_t start_time = clock();
@@ -46,7 +46,7 @@ void solve(){
       best_score = score;
       update_values(change);
       //cerr << "u";
-      last_upd_time = spend_time;
+      //last_upd_time = spend_time;
     }
   }
   cerr << "\n";

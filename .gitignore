@@ -1,5 +1,6 @@
 .vscode
 
 analyze/test
+analyze/audio_array.hpp
 *.txt
 *.exe
