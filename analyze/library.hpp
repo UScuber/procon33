@@ -126,21 +126,28 @@ void output_result(const Data best[m]){
   }
   if(has_answer){
     cout << "\n";
-    int diff_num = 0;
+    int audio_diff_num = 0;
+    int karuta_diff_num = 0;
     rep(i, m){
-      bool ok = false;
+      bool ok = false, ok2 = false;
       rep(j, m){
-          if(best[i].idx == answer[j].idx){
-          ok = true; break;
+        if(best[i].idx == answer[j].idx){
+          ok = ok2 = true;
+          break;
+        }else if(best[i].idx % half_n == answer[j].idx % half_n){
+          ok2 = true;
         }
       }
-      if(ok) continue;
-      diff_num++;
-      if(best[i].idx < half_n) cout << "J" << best[i].idx+1;
-      else cout << "E" << best[i].idx-half_n+1;
-      cout << " ";
+      if(!ok){
+        audio_diff_num++;
+        if(best[i].idx < half_n) cout << "J" << best[i].idx+1;
+        else cout << "E" << best[i].idx-half_n+1;
+        cout << " ";
+      }
+      if(!ok2) karuta_diff_num++;
     }
-    cerr << "Diff: " << diff_num << "/" << m << "\n";
+    cerr << "Audio Diff: " << audio_diff_num << "/" << m << "\n";
+    cerr << "Karuta Diff: " << karuta_diff_num << "/" << m << "\n";
   }
 }
 

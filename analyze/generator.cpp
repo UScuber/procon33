@@ -97,8 +97,9 @@ int main(int argc, char *args[]){
     used |= 1LL << p;
     if(!i) st[p] = 0;
     else{
-      if(st[last] + data[p].L > max_time) st[p] = rnd(0, max_time - data[p].L + 1);
-      else st[p] = rnd(st[last], std::min(max_time - data[p].L + 1, st[last] + data[last].L + 1));
+      st[p] = rnd(0, max_time - data[p].L + 1);
+      //if(st[last] + data[p].L > max_time) st[p] = rnd(0, max_time - data[p].L + 1);
+      //else st[p] = rnd(st[last], std::min(max_time - data[p].L + 1, st[last] + data[last].L + 1));
     }
     last = p;
   }
