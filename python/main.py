@@ -1,78 +1,111 @@
-import numpy as np
-from scipy import signal
-import os
 import soundfile as sf
-import pyroomacoustics as pra
+import numpy as np
+import matplotlib.pyplot as plt
 
-path_to_pyroom = 'audio/JKspeech'
-outputDir = './output'
+# 音声の読み込み
+#master, fs = sf.read("audio/JKspeech/J02.wav")
+master, fs = sf.read("twice.wav")
 
-fsResample = 16000  # resampling frequency [Hz]
-fftSize = 4096  # window length in STFT [points]
-shiftSize = 2048  # shift length in STFT [points]
-ns = 2  # number of sources
-it = 100  # number of iterations
-nb = 10  # number of bases
+t = np.arange(0, len(master) / fs, 1/fs)
 
-os.makedirs(outputDir, exist_ok=True)
+# 音声波形の中心部分（定常部）を切り出す
+center = len(master)//2 #　中心のサンプル番号
+cuttime = 0.04 # 秒
+x = master[int(center - cuttime / 2 * fs):int(center + cuttime / 2 * fs)]
+time = t[int(center - cuttime/2*fs): int(center + cuttime/2*fs)]
 
-# signal x channel x source (source image)
-sig_src1, fs = sf.read(path_to_pyroom + '/J01.wav')
-sig_src2, fs = sf.read(path_to_pyroom + '/J02.wav')
-for i in range(min(len(sig_src1), len(sig_src2))):
-  sig_src1[i] += sig_src2[i]
-del sig_src2
-sig_src2, fs = sf.read(path_to_pyroom + '/E01.wav')
+#plt.plot(time * 1000, x)
+#plt.xlabel("time [ms]")
+#plt.ylabel("amplitude")
+#plt.show()
 
-min_len = min(len(sig_src1), len(sig_src2))
-sig_src1 = sig_src1[:min_len]
-sig_src2 = sig_src2[:min_len]
-sig = np.stack([sig_src1, sig_src2], axis=1)
-del sig_src1, sig_src2
+# ハミング窓をかける
+hamming = np.hamming(len(x))
+x = x * hamming
 
-sig_src1 = signal.resample_poly(sig[:, 0], fsResample, fs)
-sig_src2 = signal.resample_poly(sig[:, 1], fsResample, fs)
-sig_resample = np.stack([sig_src1, sig_src2], axis=1)
-del sig_src1, sig_src2
+# 振幅スペクトルを求める
+N = 2048 # FFTのサンプル数
+spec = np.abs(np.fft.fft(x, N))[:N//2]
+#fscale = np.fft.fftfreq(N, d = 1.0 / fs)[:N//2]
 
-#save first
-# source signal 1
-sf.write('{}/originalSource1.wav'.format(outputDir), sig_resample[:, 0], fsResample)
-# source signal 2
-sf.write('{}/originalSource2.wav'.format(outputDir), sig_resample[:, 1], fsResample)
-
-mix1 = sig_resample[:, 0]
-mix1 += sig_resample[:, 1]
-mix2 = sig_resample[:, 1]
-mix2 += sig_resample[:, 0]
-mix = np.stack([mix1, mix2], axis=1)
-del mix1, mix2
-# analysis window
-win_a = pra.hamming(fftSize)
-
-# optimal synthesis window
-win_s = pra.transform.compute_synthesis_window(win_a, shiftSize)
-
-# STFT
-X = pra.transform.analysis(mix, fftSize, shiftSize, win=win_a)
-
-# Apply FastMNMF
-Y = pra.bss.fastmnmf(X, n_src=ns, n_iter=it, n_components=nb)
-
-# ISTFT
-y = pra.transform.synthesis(Y, fftSize, shiftSize, win=win_s)
+#plt.plot(fscale, spec)
+#plt.xlabel("frequency [Hz]")
+#plt.ylabel("amplitude spectrum")
+#plt.show()
 
 
-# observed signal
-sf.write('{}/observedMixture.wav'.format(outputDir), mix, fsResample)
+def hz2mel(f):
+  """Hzをmelに変換"""
+  return 2595 * np.log(f / 700.0 + 1.0)
 
-print("y:", y)
+def mel2hz(m):
+  """melをhzに変換"""
+  return 700 * (np.exp(m / 2595) - 1.0)
 
-# estimated signal 1
-sf.write('{}/estimatedSignal1.wav'.format(outputDir), y[:, 0], fsResample)
+def melFilterBank(fs, N, numChannels):
+  """メルフィルタバンクを作成"""
+  # ナイキスト周波数（Hz）
+  fmax = fs / 2
+  # ナイキスト周波数（mel）
+  melmax = hz2mel(fmax)
+  # 周波数インデックスの最大数
+  nmax = N // 2
+  # 周波数解像度（周波数インデックス1あたりのHz幅）
+  df = fs / N
+  # メル尺度における各フィルタの中心周波数を求める
+  dmel = melmax / (numChannels + 1)
+  melcenters = np.arange(1, numChannels + 1) * dmel
+  # 各フィルタの中心周波数をHzに変換
+  fcenters = mel2hz(melcenters)
+  # 各フィルタの中心周波数を周波数インデックスに変換
+  indexcenter = np.round(fcenters / df)
+  # 各フィルタの開始位置のインデックス
+  indexstart = np.hstack(([0], indexcenter[0:numChannels - 1]))
+  # 各フィルタの終了位置のインデックス
+  indexstop = np.hstack((indexcenter[1:numChannels], [nmax]))
+  filterbank = np.zeros((numChannels, nmax))
+  #print(indexstop)
+  for c in range(0, numChannels):
+    # 三角フィルタの左の直線の傾きから点を求める
+    increment= 1.0 / (indexcenter[c] - indexstart[c])
+    for i in range(int(indexstart[c]), int(indexcenter[c])):
+      filterbank[c, i] = (i - indexstart[c]) * increment
+    # 三角フィルタの右の直線の傾きから点を求める
+    decrement = 1.0 / (indexstop[c] - indexcenter[c])
+    for i in range(int(indexcenter[c]), int(indexstop[c])):
+      filterbank[c, i] = 1.0 - ((i - indexcenter[c]) * decrement)
 
-# estimated signal 2
-sf.write('{}/estimatedSignal2.wav'.format(outputDir), y[:, 1], fsResample)
+  return filterbank, fcenters
+
+# メルフィルタバンクを作成
+numChannels = 20  # メルフィルタバンクのチャネル数
+df = fs / N   # 周波数解像度（周波数インデックス1あたりのHz幅）
+filterbank, fcenters = melFilterBank(fs, N, numChannels)
+
+# メルフィルタバンクのプロット
+#for c in np.arange(0, numChannels):
+#  plt.plot(np.arange(0, N / 2) * df, filterbank[c])
+
+#plt.title('Mel filter bank')
+#plt.xlabel('Frequency[Hz]')
+#plt.show()
 
 
-print('The files are saved in "./output".')
+# 振幅スペクトルにメルフィルタバンクを適用
+mspec = np.dot(spec, filterbank.T)
+
+# 元の振幅スペクトルとフィルタバンクをかけて圧縮したスペクトルを表示
+#plt.figure(figsize=(13, 5))
+
+#plt.plot(fscale, 10* np.log10(spec), label='Original Spectrum')
+#plt.plot(fcenters, 10 * np.log10(mspec), "o-", label='Mel Spectrum')
+#plt.xlabel("frequency[Hz]")
+#plt.ylabel('Amplitude[dB]')
+#plt.legend()
+#plt.show()
+
+from scipy.fftpack import dct
+ceps = dct(10 * np.log10(mspec), type=2, norm="ortho", axis=-1)
+nceps = 12
+mfcc = ceps[:nceps]
+print(mfcc)
