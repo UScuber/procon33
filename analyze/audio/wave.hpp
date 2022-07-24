@@ -5,7 +5,7 @@
 
 constexpr int short_max = (1 << 15) - 1;
 constexpr int default_sampling_hz = 48000;
-constexpr int analyze_sampling_hz = 9600;
+constexpr int analyze_sampling_hz = 6000;
 constexpr int default_audio_max_length = 394606;
 constexpr int analyze_audio_max_length = default_audio_max_length / (default_sampling_hz / analyze_sampling_hz);
 static_assert(default_sampling_hz % analyze_sampling_hz == 0);

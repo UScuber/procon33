@@ -37,8 +37,8 @@ void solve(){
   double last_upd_time = -1;
   int steps = 0;
 
-  constexpr double t0 = 4e3;
-  constexpr double t1 = 1.2e2;
+  constexpr double t0 = 4e3/1.5;
+  constexpr double t1 = 1.2e2/1.25;
   double temp = t0;
   double spend_time = 0;
   const clock_t start_time = clock();
@@ -49,7 +49,7 @@ void solve(){
     if(!(steps & mask)){
       spend_time = clock() - start_time;
       spend_time /= CLOCKS_PER_SEC;
-      if(spend_time > limit_time*3/5) break;
+      if(spend_time > limit_time*0.70) break;
       temp = pow(t0, 1.0-spend_time/limit_time) * pow(t1, spend_time/limit_time);
     }
     RndInfo change;
@@ -63,7 +63,7 @@ void solve(){
       cerr << "u";
       update_num++;
       last_upd_time = spend_time;
-    }else if(exp((double)(best_score - score) / temp) > rnd(1024)/1024.0){
+    }else if(exact_exp((double)(best_score - score) / temp) > rnd(1024)/1024.0){
       best_score = score;
       update_values(change);
       //cerr << "u";
@@ -132,6 +132,7 @@ void solve(){
   cerr << "Time per loop: " << (spend_time-temp_time)/cnt << "\n";
   cerr << "Final Score: " << best_score << "\n";
 
+  cout << awesome_score << " ";
   File::output_result(best);
 }
 
