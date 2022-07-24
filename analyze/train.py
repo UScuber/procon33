@@ -4,7 +4,7 @@ from subprocess import PIPE
 
 
 file_path = "./results.csv"
-train_num = 2
+train_num = 77
 
 def build():
   subprocess.run("generator.exe test 20 1 8", stderr=PIPE)
