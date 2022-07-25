@@ -1,10 +1,11 @@
 import csv
 import subprocess
 from subprocess import PIPE
+import sys
 
 
 file_path = "./results.csv"
-train_num = 77
+train_num = -1
 
 def build():
   subprocess.run("generator.exe test 20 1 8", stderr=PIPE)
@@ -31,6 +32,10 @@ def main():
   
 
 if __name__ == "__main__":
+  if not len(sys.argv) == 2 or not sys.argv[1].isdigit():
+    print("python train.py [train num]")
+    exit()
+  train_num = int(sys.argv[1])
   subprocess.run("g++ generator.cpp -O2 -o generator.exe")
   subprocess.run("g++ tester.cpp -O2 -o tester.exe")
   main()
