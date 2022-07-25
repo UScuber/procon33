@@ -50,7 +50,7 @@ void solve(){
     if(!(steps & mask)){
       spend_time = clock() - start_time;
       spend_time /= CLOCKS_PER_SEC;
-      if(spend_time > limit_time*0.53) break;
+      if(spend_time > limit_time*0.60) break;
       temp = pow(t0, 1.0-spend_time/limit_time) * pow(t1, spend_time/limit_time);
     }
     RndInfo change;

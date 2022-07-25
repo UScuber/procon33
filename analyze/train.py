@@ -4,7 +4,7 @@ from subprocess import PIPE
 import sys
 
 
-file_path = "./results.csv"
+file_path = "./results6s.csv"
 train_num = -1
 
 def build():
