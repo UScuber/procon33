@@ -35,9 +35,7 @@ void solve(){
         cerr << "r";
         last_upd_time = spend_time;
         best_score = awesome_score;
-        memcpy(best, awesome, sizeof(best));
-        used_idx = 0;
-        rep(i, m) used_idx |= 1ULL << (best[i].idx % half_n);
+        init_array(awesome);
       }
       */
       temp = pow(t0, 1.0-spend_time/limit_time) * pow(t1, spend_time/limit_time);

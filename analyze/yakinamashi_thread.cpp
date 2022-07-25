@@ -8,14 +8,15 @@ constexpr double limit_time = 60.0 * 5;
 namespace Solver {
 
 constexpr int thread_num = 12 + 4;
-constexpr int tasks_num = 512 * 8 / 4;
+constexpr int max_tasks_num = 512 * 8 / 4 / 2;
+int tasks_num = max_tasks_num;
 
-RndInfo rnd_arrays[thread_num][tasks_num];
+RndInfo rnd_arrays[thread_num][max_tasks_num];
 
 Data awesome[m];
 ll awesome_score = infl;
 
-std::pair<ll, RndInfo> solve_one_thread(const RndInfo ran[tasks_num]){
+std::pair<ll, RndInfo> solve_one_thread(const RndInfo ran[max_tasks_num]){
   ll best_sc = infl;
   int best_change_idx = -1;
   rep(i, tasks_num){
@@ -49,7 +50,7 @@ void solve(){
     if(!(steps & mask)){
       spend_time = clock() - start_time;
       spend_time /= CLOCKS_PER_SEC;
-      if(spend_time > limit_time*0.70) break;
+      if(spend_time > limit_time*0.53) break;
       temp = pow(t0, 1.0-spend_time/limit_time) * pow(t1, spend_time/limit_time);
     }
     RndInfo change;
@@ -71,10 +72,9 @@ void solve(){
       //last_upd_time = spend_time;
     }
   }
-  //best_score = awesome_score;
-  //memcpy(best, awesome, sizeof(best));
-  //used_idx = 0;
-  //rep(i, m) used_idx |= 1ULL << (best[i].idx % half_n);
+  best_score = awesome_score;
+  init_array(awesome);
+
   cerr << "\n";
   cerr << "Score: " << best_score << "\n";
   cerr << "Start Multi Thread\n";
@@ -87,12 +87,20 @@ void solve(){
       spend_time /= CLOCKS_PER_SEC;
       if(spend_time > limit_time) break;
       temp = pow(t0, 1.0-spend_time/limit_time) * pow(t1, spend_time/limit_time);
+      if(spend_time - last_upd_time >= 1.0){
+        tasks_num = max_tasks_num;
+      }else{
+        tasks_num = max_tasks_num / 12;
+      }
     }
     cnt += thread_num * tasks_num;
     std::future<std::pair<ll, RndInfo>> threads[thread_num];
     rep(i, thread_num){
       rep(j, tasks_num){
-        rnd_create(rnd_arrays[i][j]);
+        if(spend_time - last_upd_time <= 3.0)
+          rnd_create(rnd_arrays[i][j]);
+        else
+          rnd_create2(rnd_arrays[i][j]);
       }
       threads[i] = std::async(solve_one_thread, rnd_arrays[i]);
     }
@@ -118,13 +126,11 @@ void solve(){
       best_score = good_score;
       update_values(best_change);
       //cerr << "u";
-      last_upd_time = spend_time;
+      //last_upd_time = spend_time;
     }
   }
   best_score = awesome_score;
-  memcpy(best, awesome, sizeof(best));
-  used_idx = 0;
-  rep(i, m) used_idx |= 1ULL << (best[i].idx % half_n);
+  init_array(awesome);
   cerr << "\n";
   cerr << "Steps: " << steps << "\n";
   cerr << "Updated: " << update_num << "\n";
