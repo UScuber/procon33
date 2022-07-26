@@ -51,7 +51,7 @@ int main(int argc, char *args[]){
   const int sep_num = atoi(args[3]);
   const double time_limit = atoi(args[4]);
   _mkdir(args[1]);
-  int max_time = std::max(time_limit, sep_num*0.5) * hz;
+  const int max_time = std::max(time_limit, std::max(sep_num,2)*0.5) * hz;
   data.resize(m);
   vector<std::pair<int,int>> info(m);
 
@@ -72,10 +72,11 @@ int main(int argc, char *args[]){
 
   // clip random
   cerr << "clip random\n";
+  vector<int> st_pos(m);
   rep(i, m){
     // clip [l, r)
     const int l = rnd(0, data[i].L - hz);
-    const int r = rnd(l + hz, data[i].L) + 1;
+    const int r = rnd(l + hz, std::min(max_time+l, data[i].L)) + 1;
     assert(0 <= l && l < r && r < data[i].L);
     vector<int> sep{ 0, l, r, data[i].L };
     if(l == 0) sep.erase(sep.begin());
@@ -83,11 +84,11 @@ int main(int argc, char *args[]){
     const vector<Wave> temp = separate_audio(data[i], sep);
     if(l == 0) data[i] = temp[0];
     else data[i] = temp[1];
+    st_pos[i] = l;
   }
 
   // create problem file
   cerr << "create problem file\n";
-  rep(i, m) max_time = std::max(max_time, data[i].L);
   vector<int> st(m);
   int last = -1;
   used = 0;
@@ -139,6 +140,8 @@ int main(int argc, char *args[]){
   answer += std::to_string(m) + "\n";
   rep(i, m) answer += std::to_string(info[i].first + (info[i].second == EN)*n) + " \n"[i == m - 1];
   rep(i, m) answer += std::to_string(st[i]) + " \n"[i == m - 1];
+  rep(i, m) answer += std::to_string(data[i].L) + " \n"[i == m - 1];
+  rep(i, m) answer += std::to_string(st_pos[i]) + " \n"[i == m - 1];
   answer += "\nn speech: " + std::to_string(m) + "\n\n";
   answer += "speech: ";
   rep(i, m){

@@ -195,7 +195,10 @@ void read_values(){
     }
   }
   rep(i, m) std::cin >> answer[i].idx;
-  if(cin.eof()) has_answer = false;
+  rep(i, m) std::cin >> answer[i].pos;
+  rep(i, m) std::cin >> answer[i].len;
+  rep(i, m) std::cin >> answer[i].st;
+  if(std::cin.eof()) has_answer = false;
 
   // output answer_idx
   /*
@@ -275,7 +278,11 @@ void init(){
     best[i].pos = 0;
     best[i].st = 0;
     best[i].len = min(problem_length, audio_length[best[i].idx]);
-    used_idx |= 1ULL << i;
+    // best[i].idx = answer[i].idx;
+    // best[i].pos = answer[i].pos / (default_sampling_hz / analyze_sampling_hz);
+    // best[i].st = answer[i].st / (default_sampling_hz / analyze_sampling_hz);
+    // best[i].len = answer[i].len / (default_sampling_hz / analyze_sampling_hz);
+    used_idx |= 1ULL << best[i].idx;
     // best_subの計算
     rep(j, best[i].len){
       best_sub[j + best[i].pos] -= arrays[best[i].idx][j + best[i].st];
