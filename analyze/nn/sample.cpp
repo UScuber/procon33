@@ -2,51 +2,51 @@
 #include <stdlib.h>
 #include <time.h>
 #include <iostream>
+#include <vector>
+#include <utility>
 #include "genann.hpp"
 #include "../audio/wave.hpp"
 #include "SvgDrawer.hpp"
 using ll = long long;
 
-int main(int argc, char *argv[]){
-  Wave wave;
-  read_audio(wave, "../audio/JKspeech/E02.wav");
-  change_sampling_hz(wave, 48000/2);
-  write_audio(wave, "out.wav");
-
-  mi::SvgDrawer drawer(1600, 300, "test.svg");
-	drawer.setStrokeColor("blue");
-  drawer.setViewBox(-100, -20000, wave.L, 20000);
+std::vector<std::pair<int,int>> calc_silent_wave(const Wave &wave){
+  std::vector<int> isok(wave.L);
+  std::vector<double> val(wave.L);
   for(int i = 0; i < wave.L; i++){
-    bool ok = true;
     ll tot = 0;
-    constexpr int l = 50/2;
+    int mx = 0;
+    constexpr int l = 50;
     for(int j = -std::min(i,l); j < l && j+i < wave.L; j++){
       tot += (ll)wave[i+j] * wave[i+j];
+      mx = std::max(mx, abs(wave[i+j]));
     }
-    if(sqrt((double)tot / l/2) < 20);
-    else ok = false;
-    if(ok){
-      drawer.setStrokeColor("red");
-      drawer.drawLine(i, 0, i, 3000);
-      drawer.setStrokeColor("blue");
-    }
-    else drawer.drawLine(i, 0, i, wave[i]);
+    val[i] = sqrt((double)tot / l/2);
+    if(mx < 80 || val[i] < 32) isok[i] = 1;
   }
-	/*
-  drawer.setStrokeColor("red");
-	drawer.drawLine(-1.5, -1.5, -1.5, 1.5);
-	drawer.setStrokeColor("blue");
-	drawer.drawLine(-1.5, 1.5, 1.5, 1.5);
-	drawer.setStrokeColor("yellow");
-	drawer.drawLine(1.5, 1.5, 1.5, -1.5);
-	drawer.setStrokeColor("green");
-	drawer.drawLine(1.5, -1.5, -1.5, -1.5);
-  */
-  // printf("GENANN example 1.\n");
-  // printf("Train a small ANN to the XOR function using backpropagation.\n");
+  for(int i = 0; i < wave.L; i++){
+    int cnt = 0;
+    for(int j = std::max(-i, -2); j <= std::min(wave.L-i-1,2); j++){
+      cnt += isok[i + j];
+    }
+    if(cnt >= 3 && val[i] < 60){
+      isok[i] = 1;
+    }
+  }
+  std::vector<std::pair<int,int>> res;
+  int last = 0;
+  for(int i = 1; i < wave.L - 1; i++) if(isok[i]){
+    if(!isok[i-1]){
+      last = i;
+    }
+    if(!isok[i+1]){
+      res.push_back({ last, i });
+    }
+  }
+  return res;
+}
 
-  // /* This will make the neural network initialize differently each run. */
-  // /* If you don't get a good result, try again for a different result. */
+
+int main(int argc, char *argv[]){
   // srand(time(NULL));
 
   // /* Input and expected out data for the XOR function. */
