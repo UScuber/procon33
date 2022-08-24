@@ -16,15 +16,26 @@ struct Wave {
   int bits; //量子化bit数
   int L = 0; //データ長
   std::vector<int> data;
-  int &operator[](const int &i) noexcept{
+  int &operator[](const int i) noexcept{
     assert(0 <= i && i < L);
     return data[i];
   }
-  const int &operator[](const int &i) const noexcept{
+  const int operator[](const int i) const noexcept{
     assert(0 <= i && i < L);
     return data[i];
   }
 };
+
+template <typename T>
+inline void file_read(T *dst, const size_t size, FILE *fp) noexcept{
+  const size_t d = fread(dst, sizeof(T), size, fp);
+  assert(d > 0);
+}
+template <typename T>
+inline void file_write(const T *str, const size_t size, FILE *fp) noexcept{
+  const size_t d = fwrite(str, sizeof(T), size, fp);
+  assert(d > 0);
+}
 
 void read_audio(Wave &prm, const char *filename){
   char tmp[24];
@@ -38,12 +49,12 @@ void read_audio(Wave &prm, const char *filename){
   assert(fp != NULL);
 
   //wavデータ読み込み
-  fread(tmp, 1, 24, fp);
-  fread(&fmt_samples_per_sec, 4, 1, fp);
-  fread(tmp, 1, 6, fp);
-  fread(&fmt_bits_per_sample, 2, 1, fp);
-  fread(tmp, 1, 4, fp);
-  fread(&data_size, 4, 1, fp);
+  file_read(tmp, 24, fp);
+  file_read(&fmt_samples_per_sec, 1, fp);
+  file_read(tmp, 6, fp);
+  file_read(&fmt_bits_per_sample, 1, fp);
+  file_read(tmp, 4, fp);
+  file_read(&data_size, 1, fp);
 
   //パラメータ代入
   prm.fs = fmt_samples_per_sec;
@@ -54,7 +65,7 @@ void read_audio(Wave &prm, const char *filename){
   prm.data.resize(prm.L);
   for(int i = 0; i < prm.L; i++){
     short data_data;
-    fread(&data_data, 2, 1, fp);
+    file_read(&data_data, 1, fp);
     prm[i] = data_data;
   }
   fclose(fp);
@@ -64,32 +75,32 @@ void write_audio(const Wave &prm, const char *filename){
   assert(fp != NULL);
 
   //ヘッダー書き込み
-  const long header_size = 36 + prm.L * 2;
+  const int header_size = 36 + prm.L * 2;
 
-  fwrite("RIFF", 1, 4, fp);
-  fwrite(&header_size, 4, 1, fp);
-  fwrite("WAVE", 1, 4, fp);
-  fwrite("fmt ", 1, 4, fp);
+  file_write("RIFF", 4, fp);
+  file_write(&header_size, 1, fp);
+  file_write("WAVE", 4, fp);
+  file_write("fmt ", 4, fp);
 
-  const long fmt_size = 16;
+  const int fmt_size = 16;
   const short fmt_format = 1;
   const short fmt_channel = 1;
-  const long fmt_samples_per_sec = prm.fs;
-  const long fmt_bytes_per_sec = prm.fs * prm.bits / 8;
+  const int fmt_samples_per_sec = prm.fs;
+  const int fmt_bytes_per_sec = prm.fs * prm.bits / 8;
   const short fmt_block_size = prm.bits / 8;
   const short fmt_bits_per_sample = prm.bits;
-  fwrite(&fmt_size, 4, 1, fp);
-  fwrite(&fmt_format, 2, 1, fp);
-  fwrite(&fmt_channel, 2, 1, fp);
-  fwrite(&fmt_samples_per_sec, 4, 1, fp);
-  fwrite(&fmt_bytes_per_sec, 4, 1, fp);
-  fwrite(&fmt_block_size, 2, 1, fp);
-  fwrite(&fmt_bits_per_sample, 2, 1, fp);
+  file_write(&fmt_size, 1, fp);
+  file_write(&fmt_format, 1, fp);
+  file_write(&fmt_channel, 1, fp);
+  file_write(&fmt_samples_per_sec, 1, fp);
+  file_write(&fmt_bytes_per_sec, 1, fp);
+  file_write(&fmt_block_size, 1, fp);
+  file_write(&fmt_bits_per_sample, 1, fp);
 
   //データ書き込み
-  const long data_size = prm.L * 2;
-  fwrite("data", 1, 4, fp);
-  fwrite(&data_size, 4, 1, fp);
+  const int data_size = prm.L * 2;
+  file_write("data", 4, fp);
+  file_write(&data_size, 1, fp);
 
   //音声データ書き込み
   for(int i = 0; i < prm.L; i++){
