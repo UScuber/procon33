@@ -5,6 +5,9 @@
 #include <cmath>
 #include <time.h>
 #include <cstring>
+#include <chrono>
+//#pragma GCC target("avx2")
+#pragma GCC optimize("unroll-loops")
 #ifndef RELEASE
 #include "audio_array_temp.hpp"
 #else
@@ -12,18 +15,14 @@
 #include "audio_array.hpp"
 #endif
 #define rep(i, n) for(int i = 0; i < (n); i++)
-using ll = long long;
 using uint = unsigned int;
-using ull = unsigned long long;
 using std::vector;
-//using std::max; using std::min;
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
 using std::cout; using std::cin;
 using std::cerr;
 
 constexpr int inf = (uint)-1 >> 1;
-constexpr ll infl = (ull)-1 >> 1;
 
 constexpr int n = 44*2; //candidate arrays
 constexpr int half_n = n / 2;
@@ -35,6 +34,8 @@ static_assert(m <= half_n);
 
 // 数列の値の型
 using Val_Type = int;
+using Score_Type = int;
+constexpr Score_Type inf_score = (1ULL << (sizeof(Score_Type)*8-1)) - 1;
 
 int audio_length[n] = {};
 Val_Type problem[ans_length] = {};
@@ -49,19 +50,6 @@ struct Data {
 };
 Data answer[m];
 
-inline uint randxor32() noexcept{
-  static uint x = rand() | rand() << 16;
-  x ^= x << 13; x ^= x >> 17;
-  return x ^= x << 5;
-}
-inline uint randxor128() noexcept{
-  static uint x = rand() | rand() << 16;
-  static uint y = rand() | rand() << 16;
-  static uint z = rand() | rand() << 16;
-  static uint w = rand() | rand() << 16;
-  //static uint x=123456789,y=362436069,z=521288629,w=88675123;
-  uint t=(x^(x<<11));x=y;y=z;z=w; return (w=(w^(w>>19))^(t^(t>>8)));
-}
 // returns random [l, r)
 inline int rnd(const int l, const int r) noexcept{
   static uint x = rand() | rand() << 16;
@@ -146,11 +134,11 @@ namespace {
   };
   constexpr inline uint64_t exp_table(const uint64_t s) noexcept{
     const double b = b1table[s>>5&31] * b2table[s&31];
-    return *(uint64_t*)&b + (s >> 10) << 52;
+    return *(uint64_t*)&b + ((s >> 10) << 52);
   }
 }
 
-constexpr double inline exact_exp(const double x) noexcept{
+constexpr double inline fast_exp(const double x) noexcept{
   if(x < -104.0f) return 0.0;
   if(x > 0x1.62e42ep+6f) return HUGE_VALF;
   constexpr double R = 0x3.p+51f;
@@ -164,11 +152,12 @@ constexpr double inline exact_exp(const double x) noexcept{
 }
 
 #define Weight(x) abs(x)
-//#define Weight(x) ((ll)(x)*(ll)(x))
+// check is crossed [a, b), [c, d)
+#define is_cross(a,b,c,d) (max(a,c) < min(b,d))
 
 // 問題の数列から数字を引いたやつのスコアを計算する
-constexpr ll calc_score(const Val_Type a[ans_length]) noexcept{
-  ll score = 0;
+constexpr Score_Type calc_score(const Val_Type a[ans_length]) noexcept{
+  Score_Type score = 0;
   rep(i, problem_length) score += Weight(a[i]);
   return score;
 }
@@ -219,6 +208,36 @@ void output_result(const Data best[m]){
     cout << " " << best[i].pos * 4 << "\n";
   }
   */
+  // output audio
+  /*
+  constexpr int p = default_sampling_hz / analyze_sampling_hz;
+  vector<Wave> waves(m);
+  char buf[64];
+  rep(i, m){
+    sprintf(buf, "audio/JKspeech/%c%02d.wav", best[i].idx >= half_n ? 'E' : 'J', best[i].idx % half_n + 1);
+    Wave tmp;
+    read_audio(tmp, buf);
+    //assersion found
+    const auto res = separate_audio(tmp, { 0, best[i].st*p, (best[i].st+best[i].len)*p, tmp.L });
+    waves[i] = res[1];
+  }
+  vector<int> st(m);
+  rep(i, m) st[i] = best[i].pos*p;
+  rep(i, m){
+    vector<Wave> wav;
+    vector<int> st_pos;
+    rep(j, m) if(i != j){
+      wav.emplace_back(waves[j]);
+      st_pos.emplace_back(best[i].pos*p);
+    }
+    const auto result = merge_audio(wav, st_pos);
+    cerr << best[i].idx << " ";
+    sprintf(buf, "outs/out%d.wav", i+1);
+    write_audio(result, buf);
+  }
+  */
+  cerr << "\n";
+
   if(has_answer){
     /*
     cout << "\n";
@@ -245,6 +264,9 @@ void output_result(const Data best[m]){
       }
       if(!ok2) karuta_diff_num++;
     }
+    rep(i, m){
+      cout << "Fuda: " << best[i].idx << ", Pos: " << best[i].pos << ", St: " << best[i].st << ", Len: " << best[i].len << "\n";
+    }
     cerr << "Audio Diff: " << audio_diff_num << "/" << m << "\n";
     cerr << "Karuta Diff: " << karuta_diff_num << "/" << m << "\n";
     cout << audio_diff_num << " " << karuta_diff_num << "\n";
@@ -265,10 +287,10 @@ struct RndInfo {
 };
 
 Data best[m];
-ull used_idx = 0;
+uint64_t used_idx = 0;
 Val_Type best_sub[ans_length];
 
-ll best_score = infl;
+Score_Type best_score = inf_score;
 
 void init(){
   memcpy(best_sub, problem, sizeof(problem));
@@ -289,7 +311,7 @@ void init(){
     }
   }
   best_score = calc_score(best_sub);
-  
+
   cerr << "First Score: " << best_score << "\n";
 }
 
@@ -413,22 +435,23 @@ inline void rnd_create2(RndInfo &change) noexcept{
   }
 }
 
-inline constexpr void calc_range_score_sub(const Val_Type a[], const Val_Type b[], const int range, ll &score) noexcept{
+inline constexpr void calc_range_score_sub(const Val_Type a[], const Val_Type b[], const int range, Score_Type &score) noexcept{
   rep(i, range) score += Weight(b[i] - a[i]) - Weight(b[i]);
 }
-inline constexpr void calc_range_score_add(const Val_Type a[], const Val_Type b[], const int range, ll &score) noexcept{
+inline constexpr void calc_range_score_add(const Val_Type a[], const Val_Type b[], const int range, Score_Type &score) noexcept{
   rep(i, range) score += Weight(b[i] + a[i]) - Weight(b[i]);
 }
 
-inline constexpr ll calc_one_changed_ans(const RndInfo &info) noexcept{
+inline constexpr Score_Type calc_one_changed_ans(const RndInfo &info) noexcept{
   const Data &pre = best[info.idx];
   const int info_rig = info.pos + info.len;
   const int pre_rig = pre.pos + pre.len;
   const Val_Type *arr_info = arrays[info.nxt_idx] + info.st;
   const Val_Type *arr_pre = arrays[pre.idx] + pre.st;
-  ll score = best_score;
+  Score_Type score = best_score;
   // cross
-  if(max(info.pos, pre.pos) < min(info_rig, pre_rig)){
+  if(is_cross(info.pos, info_rig, pre.pos, pre_rig)){
+  //if(max(info.pos, pre.pos) < min(info_rig, pre_rig)){
     // 左側がleft
     if(info.pos <= pre.pos){
       const int rightest = min(info_rig, pre.pos);
@@ -490,6 +513,14 @@ void update_values(const RndInfo &info){
 
 }; // namespace solver
 
+
+struct StopWatch {
+  const std::chrono::system_clock::time_point start_time;
+  StopWatch() : start_time(std::chrono::system_clock::now()){}
+  inline double get_time() const noexcept{
+    return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now() - start_time).count() * 1e-6;
+  }
+};
 
 struct ios_do_not_sync {
   ios_do_not_sync(){

@@ -6,7 +6,7 @@ constexpr double limit_time = 60.0 * 5;
 namespace Solver {
 
 Data awesome[m];
-ll awesome_score = infl;
+Score_Type awesome_score = inf_score;
 
 void solve(){
   init();
@@ -21,13 +21,12 @@ void solve(){
   constexpr double t1 = 1.2e2/1.2;
   double temp = t0;
   double spend_time = 0;
-  const clock_t start_time = clock();
+  StopWatch sw;
   // 山登り法
   for(; ; steps++){
-    constexpr int mask = (1 << 7) - 1;
+    constexpr int mask = (1 << 10) - 1;
     if(!(steps & mask)){
-      spend_time = clock() - start_time;
-      spend_time /= CLOCKS_PER_SEC;
+      spend_time = sw.get_time();
       if(spend_time > limit_time) break;
       /*
       // not recently updated
@@ -42,7 +41,7 @@ void solve(){
     }
     RndInfo change;
     rnd_create(change);
-    const ll score = calc_one_changed_ans(change);
+    const Score_Type score = calc_one_changed_ans(change);
     if(awesome_score > score){
       awesome_score = score;
       best_score = score;
@@ -51,7 +50,7 @@ void solve(){
       cerr << "u";
       update_num++;
       last_upd_time = spend_time;
-    }else if(exp((double)(best_score - score) / temp) > rnd(1024)/1024.0){
+    }else if(fast_exp((double)(best_score - score) / temp) > rnd(1024)/1024.0){
       best_score = score;
       update_values(change);
       //cerr << "u";
