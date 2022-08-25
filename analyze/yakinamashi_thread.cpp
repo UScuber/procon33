@@ -1,33 +1,28 @@
 #include <thread>
 #include <future>
+#include <omp.h>
 #include "library.hpp"
 
 constexpr double limit_time = 60.0 * 5;
 
+// Compile:
+// $ g++ yakinamashi_thread.cpp -Ofast -fopenmp -lgomp
 
 namespace Solver {
 
 constexpr int thread_num = 12 + 4;
-constexpr int max_tasks_num = 512 * 8 / 4 / 2;
+constexpr int max_tasks_num = 512 * 8 / 4;
 int tasks_num = max_tasks_num;
 
-RndInfo rnd_arrays[thread_num][max_tasks_num];
+RndInfo rnd_arrays[thread_num * max_tasks_num];
 
 Data awesome[m];
 Score_Type awesome_score = inf_score;
 
-std::pair<Score_Type, int> solve_one_thread(const RndInfo ran[max_tasks_num]){
-  Score_Type best_sc = inf_score;
-  int best_change_idx = -1;
-  rep(i, tasks_num){
-    const Score_Type score = calc_one_changed_ans(ran[i]);
-    if(best_sc > score){
-      best_sc = score;
-      best_change_idx = i;
-    }
-  }
-  return { best_sc, best_change_idx };
-}
+struct AnalyzeResult {
+  Score_Type score;
+  int idx;
+};
 
 void solve(){
   init();
@@ -38,8 +33,8 @@ void solve(){
   double last_upd_time = -1;
   int steps = 0;
 
-  constexpr double t0 = 4e3/1.5;
-  constexpr double t1 = 1.2e2/1.25;
+  constexpr double t0 = 2.666e3*1.6*1.1;
+  constexpr double t1 = 1.0e2*1.6;
   double temp = t0;
   StopWatch sw;
   double spend_time = 0;
@@ -49,7 +44,7 @@ void solve(){
     constexpr int mask = (1 << 9) - 1;
     if(!(steps & mask)){
       spend_time = sw.get_time();
-      if(spend_time > limit_time*0.60) break;
+      if(spend_time > limit_time*0.40) break;
       temp = pow(t0, 1.0-spend_time/limit_time) * pow(t1, spend_time/limit_time);
     }
     RndInfo change;
@@ -66,9 +61,6 @@ void solve(){
     }else if(fast_exp((double)(best_score - score) / temp) > rnd(1024)/1024.0){
       best_score = score;
       update_values(change);
-      //cerr << "u";
-      update_num++;
-      //last_upd_time = spend_time;
     }
   }
   best_score = awesome_score;
@@ -88,31 +80,40 @@ void solve(){
       if(spend_time - last_upd_time >= 1.0){
         tasks_num = max_tasks_num;
       }else{
-        tasks_num = max_tasks_num / 12;
+        tasks_num = max_tasks_num >> 3;
       }
     }
     cnt += thread_num * tasks_num;
-    std::future<std::pair<Score_Type, int>> threads[thread_num];
+
+    const int calc_num = thread_num * tasks_num;
+    RndInfo *ran_ar = rnd_arrays;
+    if(spend_time - last_upd_time <= 3.0){
+      rep(i, calc_num) rnd_create(rnd_arrays[i]);
+    }else{
+      rep(i, calc_num) rnd_create2(rnd_arrays[i]);
+    }
+    AnalyzeResult threads[thread_num];
+    // multi thread
+    #pragma omp parallel for
     rep(i, thread_num){
+      threads[i].score = inf_score;
       rep(j, tasks_num){
-        if(spend_time - last_upd_time <= 3.0)
-          rnd_create(rnd_arrays[i][j]);
-        else
-          rnd_create2(rnd_arrays[i][j]);
+        const Score_Type score = calc_one_changed_ans(rnd_arrays[i*tasks_num + j]);
+        if(threads[i].score > score){
+          threads[i].score = score;
+          threads[i].idx = j;
+        }
       }
-      threads[i] = std::async(solve_one_thread, rnd_arrays[i]);
     }
     int best_change_idx = -1;
     Score_Type good_score = inf_score;
     rep(i, thread_num){
-      Score_Type score; int idx;
-      std::tie(score, idx) = threads[i].get();
-      if(good_score > score){
-        good_score = score;
-        best_change_idx = i*max_tasks_num + idx;
+      if(good_score > threads[i].score){
+        good_score = threads[i].score;
+        best_change_idx = i*tasks_num + threads[i].idx;
       }
     }
-    const RndInfo &best_change = *(*rnd_arrays + best_change_idx);
+    const RndInfo &best_change = *(rnd_arrays + best_change_idx);
     if(awesome_score > good_score){
       awesome_score = good_score;
       best_score = good_score;
@@ -124,8 +125,6 @@ void solve(){
     }else if(exp((double)(best_score - good_score) / temp) > rnd(1024)/1024.0){
       best_score = good_score;
       update_values(best_change);
-      //cerr << "u";
-      //last_upd_time = spend_time;
     }
   }
   best_score = awesome_score;
