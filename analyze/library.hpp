@@ -27,7 +27,7 @@ constexpr int inf = (uint)-1 >> 1;
 
 constexpr int n = 44*2; //candidate arrays
 constexpr int half_n = n / 2;
-constexpr int m = 20; //select num
+constexpr int m = 6; //select num
 constexpr int hz = analyze_sampling_hz; //sampling hz[48k->12k]
 constexpr int tot_frame = analyze_audio_max_length; //max size of arrays[i]
 constexpr int ans_length = hz * 8;
