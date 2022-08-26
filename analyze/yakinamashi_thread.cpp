@@ -3,7 +3,7 @@
 #include <omp.h>
 #include "library.hpp"
 
-constexpr double limit_time = 60.0 * 5;
+constexpr double limit_time = 60.0 * 3;
 
 // Compile:
 // $ g++ yakinamashi_thread.cpp -Ofast -fopenmp -lgomp
@@ -11,7 +11,7 @@ constexpr double limit_time = 60.0 * 5;
 namespace Solver {
 
 constexpr int thread_num = 12 + 4;
-constexpr int max_tasks_num = 512 * 8 / 4;
+constexpr int max_tasks_num = 512 * 8 / 4 / 2;
 int tasks_num = max_tasks_num;
 
 RndInfo rnd_arrays[thread_num * max_tasks_num];
@@ -33,8 +33,8 @@ void solve(){
   double last_upd_time = -1;
   int steps = 0;
 
-  constexpr double t0 = 2.666e3*1.6*1.1;
-  constexpr double t1 = 1.0e2*1.6;
+  constexpr double t0 = 2.666e3;
+  constexpr double t1 = 1.0e2;
   double temp = t0;
   StopWatch sw;
   double spend_time = 0;
