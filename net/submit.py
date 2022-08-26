@@ -3,27 +3,47 @@ import sys
 import json
 
 URL = "https://procon33-practice.kosen.work"
+select = 2
 TOKEN = "3fc3169361f5daa766a8a3e3f757aaa20de7d4c7dafa3816ee4f7de4b9c71730"
 query = "?token=" + TOKEN
 
+
+"""エラー一覧"""
+err = ["InvalidToken", "AccessTimeError", "FormatError", "NotFound", "TooLargeRequestError", "Gateway Timeout"]
+
+
+"""予期せぬ結果が出たときに例外処理する関数"""
+def alert(j):
+    if j is None:
+        print("None!!")
+        sys.exit()
+    for i in range(len(err)):
+        if err[i] in j.text:
+            print(j.text)
+            sys.exit()
 
 
 """/matchにGETリクエストを送って、試合情報のjsonを返す"""
 def match_get():
     res_match = requests.get(URL + "/match" + query)
+    alert(res_match)
+    print(res_match.text)
     return res_match.text
 
 
 """/problemにGETリクエストを送って、問題情報のjsonを返す"""
 def problem_get():
     res_problem = requests.get(URL + "/problem" + query)
+    alert(res_problem)
+    print(res_problem.text)
     return res_problem.text
 
 
 """/problem/chunksに分割数をPOSTリクエストで送って、各分割データのファイル名の配列のjsonを返す"""
 def chunks_post():
-    n = int(input("分割数を入力 "))
-    res_chunks = requests.post(URL + "/problem/chunks" + query + "&n=" + str(n))
+    res_chunks = requests.post(URL + "/problem/chunks" + query + "&n=" + str(select))
+    alert(res_chunks)
+    print(res_chunks.text)
     return res_chunks.text
 
 
