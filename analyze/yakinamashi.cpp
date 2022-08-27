@@ -22,7 +22,8 @@ void solve(){
   double temp = t0;
   double spend_time = 0;
   StopWatch sw;
-  // 山登り法
+  int best_cnt[n] = {};
+  // 焼きなまし法
   for(; ; steps++){
     constexpr int mask = (1 << 10) - 1;
     if(!(steps & mask)){
@@ -49,6 +50,7 @@ void solve(){
       memcpy(awesome, best, sizeof(awesome));
       cerr << "u";
       update_num++;
+      rep(i, m) best_cnt[best[i].idx]++;
       last_upd_time = spend_time;
     }else if(fast_exp((double)(best_score - score) / temp) > rnd(1024)/1024.0){
       best_score = score;
@@ -63,7 +65,9 @@ void solve(){
   cerr << "Last Update: " << last_upd_time << "\n";
   cerr << "Time per loop: " << spend_time/steps << "\n";
   cerr << "Final Score: " << awesome_score << "\n";
-
+  rep(i, half_n) cerr << best_cnt[i] << " ";
+  cerr << "\n";
+  rep(i, half_n) cerr << best_cnt[i + half_n] << " ";
   cout << awesome_score << " ";
   File::output_result(best);
 }
