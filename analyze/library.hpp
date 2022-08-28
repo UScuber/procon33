@@ -9,12 +9,7 @@
 #include "Math.hpp"
 #pragma GCC target("avx2")
 #pragma GCC optimize("unroll-loops")
-#ifndef RELEASE
-#include "audio_array_temp.hpp"
-#else
-#include "audio/wave.hpp"
 #include "audio_array.hpp"
-#endif
 #define rep(i, n) for(int i = 0; i < (n); i++)
 using uint = unsigned int;
 using std::vector;
@@ -121,40 +116,8 @@ void output_result(const Data best[m]){
     cout << " " << best[i].pos * 4 << "\n";
   }
   */
-  // output audio
-  /*
-  constexpr int p = default_sampling_hz / analyze_sampling_hz;
-  vector<Wave> waves(m);
-  char buf[64];
-  rep(i, m){
-    sprintf(buf, "audio/JKspeech/%c%02d.wav", best[i].idx >= half_n ? 'E' : 'J', best[i].idx % half_n + 1);
-    Wave tmp;
-    read_audio(tmp, buf);
-    //assersion found
-    const auto res = separate_audio(tmp, { 0, best[i].st*p, (best[i].st+best[i].len)*p, tmp.L });
-    waves[i] = res[1];
-  }
-  vector<int> st(m);
-  rep(i, m) st[i] = best[i].pos*p;
-  rep(i, m){
-    vector<Wave> wav;
-    vector<int> st_pos;
-    rep(j, m) if(i != j){
-      wav.emplace_back(waves[j]);
-      st_pos.emplace_back(best[i].pos*p);
-    }
-    const auto result = merge_audio(wav, st_pos);
-    cerr << best[i].idx << " ";
-    sprintf(buf, "outs/out%d.wav", i+1);
-    write_audio(result, buf);
-  }
-  */
-  cerr << "\n";
 
   if(has_answer){
-    /*
-    cout << "\n";
-    */
     int audio_diff_num = 0;
     int karuta_diff_num = 0;
     rep(i, m){
@@ -177,12 +140,13 @@ void output_result(const Data best[m]){
       }
       if(!ok2) karuta_diff_num++;
     }
-    rep(i, m){
-      cout << "Fuda: " << best[i].idx << ", Pos: " << best[i].pos << ", St: " << best[i].st << ", Len: " << best[i].len << "\n";
-    }
     cerr << "Audio Diff: " << audio_diff_num << "/" << m << "\n";
     cerr << "Karuta Diff: " << karuta_diff_num << "/" << m << "\n";
     cout << audio_diff_num << " " << karuta_diff_num << "\n";
+  }
+  cout << "\n";
+  rep(i, m){
+    cout << "Fuda: " << best[i].idx << ", Pos: " << best[i].pos << ", St: " << best[i].st << ", Len: " << best[i].len << "\n";
   }
 }
 
