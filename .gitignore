@@ -5,3 +5,4 @@ analyze/test
 *.exe
 *.out
 python/output
+!/analyze/sampleProblems/*/*.txt
