@@ -50,16 +50,19 @@ Data answer[m];
 inline int rnd(const int l, const int r) noexcept{
   static uint x = rand() | rand() << 16;
   x ^= x << 13; x ^= x >> 17;
-  return (x ^= x << 5) % (r - l) + l;
+  return (int)((x ^= x << 5) % (uint)(r - l)) + l;
 }
 // returns random [0, rng)
 inline int rnd(const int rng) noexcept{
   static uint x = rand() | rand() << 16;
   x ^= x << 13; x ^= x >> 17;
-  return (x ^= x << 5) % rng;
+  return (x ^= x << 5) % (uint)rng;
 }
 
-#define Weight(x) abs(x)
+inline constexpr Val_Type Weight(const Val_Type x) noexcept{
+  return x < 0 ? -x : x;
+}
+//#define Weight(x) abs(x)
 // check is crossed [a, b), [c, d)
 #define is_cross(a,b,c,d) (max(a, c) < min(b, d))
 
@@ -208,7 +211,7 @@ void init_array(const Data data[]) noexcept{
 
 inline void rnd_create(RndInfo &change) noexcept{
   constexpr int rng = hz;
-  const int t = rnd(6);
+  const int t = rnd(7);
   // select wav and change pos
   if(t == 0){
     change.idx = rnd(m);
@@ -218,7 +221,7 @@ inline void rnd_create(RndInfo &change) noexcept{
     change.pos = rnd(problem_length - change.len + 1);
   }
   // select other wav and swap and change pos
-  else if(t == 1){
+  else if(t == 1 || t == 6){
     change.idx = rnd(m);
     change.nxt_idx = rnd(n);
     while((used_idx >> (change.nxt_idx % half_n) & 1) && best[change.idx].idx % half_n != change.nxt_idx % half_n){
@@ -312,14 +315,7 @@ inline void rnd_create2(RndInfo &change) noexcept{
   }
 }
 
-inline constexpr void calc_range_score_sub(const Val_Type a[], const Val_Type b[], const int range, Score_Type &score) noexcept{
-  rep(i, range) score += Weight(b[i] - a[i]) - Weight(b[i]);
-}
-inline constexpr void calc_range_score_add(const Val_Type a[], const Val_Type b[], const int range, Score_Type &score) noexcept{
-  rep(i, range) score += Weight(b[i] + a[i]) - Weight(b[i]);
-}
-
-inline constexpr Score_Type calc_one_changed_ans(const RndInfo &info) noexcept{
+inline Score_Type calc_one_changed_ans(const RndInfo &info) noexcept{
   const Data &pre = best[info.idx];
   const int info_rig = info.pos + info.len;
   const int pre_rig = pre.pos + pre.len;
@@ -331,24 +327,32 @@ inline constexpr Score_Type calc_one_changed_ans(const RndInfo &info) noexcept{
     // 左側がleft
     if(info.pos <= pre.pos){
       const int rightest = min(info_rig, pre.pos);
-      calc_range_score_sub(arr_info, best_sub+info.pos, rightest-info.pos, score);
+      for(int i = info.pos; i < rightest; i++){
+        score += Weight(best_sub[i] - arr_info[i-info.pos]) - Weight(best_sub[i]);
+      }
     }
     // 左側がright
     else{
       const int rightest = min(pre_rig, info.pos);
-      calc_range_score_add(arr_pre, best_sub+pre.pos, rightest-pre.pos, score);
+      for(int i = pre.pos; i < rightest; i++){
+        score += Weight(best_sub[i] + arr_pre[i-pre.pos]) - Weight(best_sub[i]);
+      }
     }
     // 右側がright
     if(info_rig <= pre_rig){
       const int leftest = max(pre.pos, info_rig);
       const int s = max(info_rig - pre.pos, 0);
-      calc_range_score_add(arr_pre+s, best_sub+leftest, pre_rig-leftest, score);
+      for(int i = leftest; i < pre_rig; i++){
+        score += Weight(best_sub[i] + arr_pre[i+s-leftest]) - Weight(best_sub[i]);
+      }
     }
     // 右側がleft
     else{
       const int leftest = max(info.pos, pre_rig);
       const int s = max(pre_rig - info.pos, 0);
-      calc_range_score_sub(arr_info+s, best_sub+leftest, info_rig-leftest, score);
+      for(int i = leftest; i < info_rig; i++){
+        score += Weight(best_sub[i] - arr_info[i+s-leftest]) - Weight(best_sub[i]);
+      }
     }
     // middle
     const int leftest = max(info.pos, pre.pos);
@@ -362,14 +366,18 @@ inline constexpr Score_Type calc_one_changed_ans(const RndInfo &info) noexcept{
   }
   // not cross
   else{
-    calc_range_score_sub(arr_info, best_sub+info.pos, info.len, score);
-    calc_range_score_add(arr_pre, best_sub+pre.pos, pre.len, score);
+    for(int i = 0; i < info.len; i++){
+      score += Weight(best_sub[i+info.pos] - arr_info[i]) - Weight(best_sub[i+info.pos]);
+    }
+    for(int i = 0; i < pre.len; i++){
+      score += Weight(best_sub[i+pre.pos] + arr_pre[i]) - Weight(best_sub[i+pre.pos]);
+    }
   }
   return score;
 }
 
 
-void update_values(const RndInfo &info){
+inline void update_values(const RndInfo &info) noexcept{
   // update best_sub
   const Data &pre = best[info.idx];
   rep(i, pre.len){
