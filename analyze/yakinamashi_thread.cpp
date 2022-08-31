@@ -11,7 +11,7 @@ constexpr double limit_time = 60.0 * 3;
 namespace Solver {
 
 constexpr int thread_num = 12 + 4;
-constexpr int max_tasks_num = 512 * 8 / 4 / 2;
+constexpr int max_tasks_num = 4096 * 4;
 int tasks_num = max_tasks_num;
 
 RndInfo rnd_arrays[thread_num * max_tasks_num];
@@ -33,7 +33,7 @@ void solve(){
   double last_upd_time = -1;
   int steps = 0;
 
-  constexpr double t0 = 2.666e3;
+  constexpr double t0 = 2.5e3;
   constexpr double t1 = 1.0e2;
   double temp = t0;
   StopWatch sw;
@@ -44,8 +44,10 @@ void solve(){
     constexpr int mask = (1 << 9) - 1;
     if(!(steps & mask)){
       spend_time = sw.get_time();
-      if(spend_time > limit_time*0.40) break;
-      temp = pow(t0, 1.0-spend_time/limit_time) * pow(t1, spend_time/limit_time);
+      if(spend_time > limit_time*0.0) break;
+      const double p = spend_time / limit_time;
+      temp = pow(t0, 1.0-p) * pow(t1, p);
+      //temp = (t1 - t0) * p + t0;
     }
     RndInfo change;
     rnd_create(change);
@@ -76,7 +78,9 @@ void solve(){
     {
       spend_time = sw.get_time();
       if(spend_time > limit_time) break;
-      temp = pow(t0, 1.0-spend_time/limit_time) * pow(t1, spend_time/limit_time);
+      const double p = spend_time / limit_time;
+      temp = pow(t0, 1.0-p) * pow(t1, p);
+      //temp = (t1 - t0) * p + t0;
       if(spend_time - last_upd_time >= 1.0){
         tasks_num = max_tasks_num;
       }else{
@@ -86,8 +90,7 @@ void solve(){
     cnt += thread_num * tasks_num;
 
     const int calc_num = thread_num * tasks_num;
-    RndInfo *ran_ar = rnd_arrays;
-    if(spend_time - last_upd_time <= 3.0){
+    if(spend_time - last_upd_time <= 2.0){
       rep(i, calc_num) rnd_create(rnd_arrays[i]);
     }else{
       rep(i, calc_num) rnd_create2(rnd_arrays[i]);
