@@ -269,20 +269,9 @@ inline void rnd_create(RndInfo &change) noexcept{
     change.st = min(best[change.idx].st, audio_length[change.nxt_idx] - change.len);
     change.pos = min(best[change.idx].pos, problem_length - change.len);
   }
-  // select other wav and swap and change pos
-  /*
-  change.idx = rnd(m);
-  change.nxt_idx = rnd(n);
-  while((used_idx >> (change.nxt_idx % half_n) & 1) && best[change.idx].idx % half_n != change.nxt_idx % half_n){
-    change.nxt_idx = rnd(n);
-  }
-  change.len = rnd(hz, min(problem_length, audio_length[change.nxt_idx]) + 1);
-  change.st = rnd(audio_length[change.nxt_idx] - change.len + 1);
-  change.pos = rnd(problem_length - change.len + 1);
-  */
 }
 inline void rnd_create2(RndInfo &change) noexcept{
-  const int t = rnd(3);
+  const int t = rnd(4);
   // select wav and change pos
   if(t == 0){
     change.idx = rnd(m);
@@ -292,7 +281,7 @@ inline void rnd_create2(RndInfo &change) noexcept{
     change.pos = rnd(problem_length - change.len + 1);
   }
   // select other wav and swap and change pos
-  else if(t == 1){
+  else if(t == 1 || t == 3){
     change.idx = rnd(m);
     change.nxt_idx = rnd(n);
     while((used_idx >> (change.nxt_idx % half_n) & 1) && best[change.idx].idx % half_n != change.nxt_idx % half_n){
