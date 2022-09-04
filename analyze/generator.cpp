@@ -2,7 +2,6 @@
 #include <string>
 #include <string.h>
 #include <time.h>
-#include <direct.h>
 #include "audio/wave.hpp"
 #define rep(i, n) for(int i = 0; i < (n); i++)
 using std::vector;
@@ -50,7 +49,6 @@ int main(int argc, char *args[]){
   const int m = atoi(args[2]);
   const int sep_num = atoi(args[3]);
   const double time_limit = atoi(args[4]);
-  _mkdir(args[1]);
   const int max_time = std::max(time_limit, std::max(sep_num,2)*0.5) * hz;
   data.resize(m);
   vector<std::pair<int,int>> info(m);
