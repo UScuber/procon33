@@ -4,5 +4,4 @@ analyze/test
 *.txt
 *.exe
 *.out
-python/output
 !/analyze/sampleProblems/*/*.txt
