@@ -7,6 +7,8 @@
 #include <cstring>
 #include <chrono>
 #include "Math.hpp"
+#include "hash.hpp"
+#include "select_num.hpp"
 #pragma GCC target("avx2")
 #pragma GCC optimize("unroll-loops")
 #include "audio_array.hpp"
@@ -22,11 +24,9 @@ constexpr int inf = (uint)-1 >> 1;
 
 constexpr int n = 44*2; //candidate arrays
 constexpr int half_n = n / 2;
-constexpr int m = 20; //select num
 constexpr int hz = analyze_sampling_hz; //sampling hz[48k->12k]
 constexpr int tot_frame = analyze_audio_max_length; //max size of arrays[i]
-constexpr int ans_length = hz * 8;
-static_assert(m <= half_n);
+constexpr int ans_length = hz * 16;
 
 // 数列の値の型
 using Val_Type = int;
@@ -36,7 +36,7 @@ constexpr Score_Type inf_score = (1ULL << (sizeof(Score_Type)*8-1)) - 1;
 int audio_length[n] = {};
 Val_Type problem[ans_length] = {};
 int problem_length = ans_length;
-bool has_answer = true;
+int contains_num = 0; //確実に含まれている札の数
 
 struct Data {
   int idx; //札の種類
@@ -62,7 +62,7 @@ inline int rnd(const int rng) noexcept{
 inline constexpr Val_Type Weight(const Val_Type x) noexcept{
   return x < 0 ? -x : x;
 }
-//#define Weight(x) abs(x)
+
 // check is crossed [a, b), [c, d)
 #define is_cross(a,b,c,d) (max(a, c) < min(b, d))
 
@@ -73,6 +73,11 @@ constexpr Score_Type calc_score(const Val_Type a[ans_length]) noexcept{
   return score;
 }
 
+
+namespace Solver {
+  void init();
+  void init_values(const Data pre_result[m], const int contain);
+} // namespace Solver
 
 namespace File {
 
@@ -86,40 +91,42 @@ void read_values(){
       }
     }
   }
-  rep(i, ans_length){
-    std::cin >> problem[i];
-    if(problem[i] == inf){
-      problem_length = i;
-      problem[i] = 0;
-      break;
+  Wave wave_data;
+  read_audio(wave_data, "test/problem.wav");
+  change_sampling_hz(wave_data, analyze_sampling_hz);
+  assert(wave_data.L <= ans_length);
+  for(int i = 0; i < wave_data.L; i++) problem[i] = wave_data[i];
+  problem_length = wave_data.L;
+  
+  std::string s;
+  std::cin >> s;
+  rep(i, m) answer[i].idx = -1;
+  if(s == "Input"){
+    Solver::init();
+  }else if(s == "Output"){
+    Data pre_values[m];
+    int tmp;
+    int contain;
+    rep(i, m) std::cin >> tmp; // fuda
+    std::cin >> tmp; // score
+    std::cin >> contain; // contains num
+    // data
+    static constexpr int p = 3;
+    rep(i, m){
+      std::cin >> pre_values[i].idx >> pre_values[i].pos >> pre_values[i].st >> pre_values[i].len;
+      pre_values[i].pos *= p;
+      pre_values[i].st *= p;
+      pre_values[i].len *= p;
     }
-  }
-  rep(i, m) std::cin >> answer[i].idx;
-  rep(i, m) std::cin >> answer[i].pos;
-  rep(i, m) std::cin >> answer[i].len;
-  rep(i, m) std::cin >> answer[i].st;
-  if(std::cin.eof()) has_answer = false;
-
-  // output answer_idx
-  /*
-  if(has_answer) rep(i, m){
-    if(answer[i].idx < half_n) cout << "J" << answer[i].idx+1;
-    else cout << "E" << answer[i].idx-half_n+1;
-    cout << "\n";
-  }
-  cout << "\n";
-  */
+    Solver::init_values(pre_values, contain);
+  }else assert(0);
 }
 
-void output_result(const Data best[m]){
+void output_result(const Data best[m], const Score_Type final_score){
+  cout << "Output\n";
+  rep(i, m) cout << best[i].idx << " \n"[i == m - 1];
+  cout << final_score << "\n";
   /*
-  rep(i, m){
-    if(best[i].idx < half_n) cout << "J" << best[i].idx+1;
-    else cout << "E" << best[i].idx-half_n+1;
-    cout << " " << best[i].pos * 4 << "\n";
-  }
-  */
-
   if(has_answer){
     int audio_diff_num = 0;
     int karuta_diff_num = 0;
@@ -133,27 +140,69 @@ void output_result(const Data best[m]){
           ok2 = true;
         }
       }
-      if(!ok){
-        audio_diff_num++;
-        /*
-        if(best[i].idx < half_n) cout << "J" << best[i].idx+1;
-        else cout << "E" << best[i].idx-half_n+1;
-        cout << " ";
-        */
-      }
+      if(!ok) audio_diff_num++;
       if(!ok2) karuta_diff_num++;
     }
     cerr << "Audio Diff: " << audio_diff_num << "/" << m << "\n";
     cerr << "Karuta Diff: " << karuta_diff_num << "/" << m << "\n";
-    cout << audio_diff_num << " " << karuta_diff_num << "\n";
+    //cout << audio_diff_num << " " << karuta_diff_num << "\n";
   }
+  */
   cout << "\n";
+  cout << contains_num << "\n";
   rep(i, m){
-    cout << "Fuda: " << best[i].idx << ", Pos: " << best[i].pos << ", St: " << best[i].st << ", Len: " << best[i].len << "\n";
+    cout << best[i].idx << " " << best[i].pos << " " << best[i].st << " " << best[i].len << "\n";
   }
 }
 
 }; // namespace File
+
+
+[[nodiscard]]
+vector<int> find_single_audio(){
+  cerr << "start find single audio(JP)\n";
+  static constexpr int range = 1 << 10;
+  Wave problem_data, wave_data;
+  read_audio(problem_data, "test/problem.wav");
+  RollingHash<range> roliha;
+  const Hash<range> problem_hash = roliha.gen(problem_data.data);
+  HashSet<ull, 22> problem_sampling;
+  rep(i, problem_data.L - range){
+    problem_sampling.set(problem_hash.query(i, i+range));
+  }
+  vector<int> result;
+  char buf[64];
+  for(int i = 0; i < 44; i++){
+    sprintf(buf, "audio/JKspeech/J%02d.wav", i+1);
+    read_audio(wave_data, buf);
+    const Hash<range> wave_data_hash = roliha.gen(wave_data.data);
+    bool ok = false;
+    rep(j, wave_data.L - range){
+      const ull h = wave_data_hash.query(j, j+range);
+      if(problem_sampling.find(h)){
+        ok = true;
+        break;
+      }
+    }
+    if(ok) result.push_back(i);
+  }
+  cerr << "start find single audio(EN)\n";
+  for(int i = 44; i < 88; i++){
+    sprintf(buf, "audio/JKspeech/E%02d.wav", i-44+1);
+    read_audio(wave_data, buf);
+    const Hash<range> wave_data_hash = roliha.gen(wave_data.data);
+    bool ok = false;
+    rep(j, wave_data.L - range){
+      const ull h = wave_data_hash.query(j, j+range);
+      if(problem_sampling.find(h)){
+        ok = true;
+        break;
+      }
+    }
+    if(ok) result.push_back(i);
+  }
+  return result;
+}
 
 
 namespace Solver {
@@ -174,18 +223,45 @@ Score_Type best_score = inf_score;
 
 void init(){
   memcpy(best_sub, problem, sizeof(problem));
-  // 最初は適当に値を入れておく
-  rep(i, m){
-    best[i].idx = i;
+  const vector<int> surely_contain = find_single_audio();
+  contains_num = (int)surely_contain.size();
+  cerr << "Surely Contains Num: " << contains_num << "\n";
+  for(const int x : surely_contain) cerr << x << " ";
+  cerr << "\n";
+  rep(i, contains_num){
+    best[i].idx = surely_contain[i];
     best[i].pos = 0;
     best[i].st = 0;
     best[i].len = min(problem_length, audio_length[best[i].idx]);
-    // best[i].idx = answer[i].idx;
-    // best[i].pos = answer[i].pos / (default_sampling_hz / analyze_sampling_hz);
-    // best[i].st = answer[i].st / (default_sampling_hz / analyze_sampling_hz);
-    // best[i].len = answer[i].len / (default_sampling_hz / analyze_sampling_hz);
-    used_idx |= 1ULL << best[i].idx;
-    // best_subの計算
+    used_idx |= 1ULL << (best[i].idx % half_n);
+  }
+  // 最初はランダムに値を入れておく
+  for(int i = contains_num; i < m; i++){
+    int idx = rnd(n);
+    while(used_idx >> (idx % half_n) & 1){
+      idx = rnd(n);
+    }
+    best[i].idx = idx;
+    best[i].pos = 0;
+    best[i].st = 0;
+    best[i].len = min(problem_length, audio_length[best[i].idx]);
+    used_idx |= 1ULL << (best[i].idx % half_n);
+  }
+  rep(i, m){
+    rep(j, best[i].len){
+      best_sub[j + best[i].pos] -= arrays[best[i].idx][j + best[i].st];
+    }
+  }
+  best_score = calc_score(best_sub);
+
+  cerr << "First Score: " << best_score << "\n";
+}
+void init_values(const Data pre_result[m], const int contain){
+  memcpy(best_sub, problem, sizeof(problem));
+  contains_num = contain;
+  memcpy(best, pre_result, sizeof(best));
+  rep(i, m){
+    used_idx |= 1ULL << (best[i].idx % half_n);
     rep(j, best[i].len){
       best_sub[j + best[i].pos] -= arrays[best[i].idx][j + best[i].st];
     }
@@ -222,7 +298,7 @@ inline void rnd_create(RndInfo &change) noexcept{
   }
   // select other wav and swap and change pos
   else if(t == 1 || t == 6){
-    change.idx = rnd(m);
+    change.idx = rnd(contains_num, m);
     change.nxt_idx = rnd(n);
     while((used_idx >> (change.nxt_idx % half_n) & 1) && best[change.idx].idx % half_n != change.nxt_idx % half_n){
       change.nxt_idx = rnd(n);
@@ -260,7 +336,7 @@ inline void rnd_create(RndInfo &change) noexcept{
   }
   // change wav type
   else if(t == 5){
-    change.idx = rnd(m);
+    change.idx = rnd(contains_num, m);
     change.nxt_idx = rnd(n);
     while((used_idx >> (change.nxt_idx % half_n) & 1) && best[change.idx].idx % half_n != change.nxt_idx % half_n){
       change.nxt_idx = rnd(n);
@@ -282,7 +358,7 @@ inline void rnd_create2(RndInfo &change) noexcept{
   }
   // select other wav and swap and change pos
   else if(t == 1 || t == 3){
-    change.idx = rnd(m);
+    change.idx = rnd(contains_num, m);
     change.nxt_idx = rnd(n);
     while((used_idx >> (change.nxt_idx % half_n) & 1) && best[change.idx].idx % half_n != change.nxt_idx % half_n){
       change.nxt_idx = rnd(n);
@@ -293,7 +369,7 @@ inline void rnd_create2(RndInfo &change) noexcept{
   }
   // change wav type
   else if(t == 2){
-    change.idx = rnd(m);
+    change.idx = rnd(contains_num, m);
     change.nxt_idx = rnd(n);
     while((used_idx >> (change.nxt_idx % half_n) & 1) && best[change.idx].idx % half_n != change.nxt_idx % half_n){
       change.nxt_idx = rnd(n);

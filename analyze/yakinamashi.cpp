@@ -1,6 +1,7 @@
 #include "library.hpp"
 
-constexpr double limit_time = 60.0;
+//constexpr double limit_time = 60.0;
+constexpr double limit_time = 45.0/17*(m-3) + 15;
 
 
 namespace Solver {
@@ -9,7 +10,6 @@ Data awesome[m];
 Score_Type awesome_score = inf_score;
 
 void solve(){
-  init();
   awesome_score = best_score;
   memcpy(awesome, best, sizeof(best));
 
@@ -17,12 +17,13 @@ void solve(){
   double last_upd_time = -1;
   int steps = 0;
 
-  constexpr double t0 = 2.5e3;
-  constexpr double t1 = 1.0e2;
+  double t0 = 2.5e3 * m / 20.0 * problem_length/(hz*7.5);
+  double t1 = 1.0e2 * m / 20.0 * problem_length/(hz*7.5);
   double temp = t0;
   double spend_time = 0, p = 0;
   StopWatch sw;
   int best_cnt[n] = {};
+  if(contains_num == m) goto END;
   // 焼きなまし法
   for(; ; steps++){
     constexpr int mask = (1 << 10) - 1;
@@ -30,15 +31,6 @@ void solve(){
       spend_time = sw.get_time();
       if(spend_time > limit_time) break;
       p = spend_time / limit_time;
-      /*
-      // not recently updated
-      if(spend_time-last_upd_time > 10.0){
-        cerr << "r";
-        last_upd_time = spend_time;
-        best_score = awesome_score;
-        init_array(awesome);
-      }
-      */
       //temp = pow(t0, 1.0-p) * pow(t1, p);
       temp = (t1 - t0) * p + t0;
     }
@@ -52,14 +44,14 @@ void solve(){
       memcpy(awesome, best, sizeof(awesome));
       cerr << "u";
       update_num++;
-      if(p >= 0.5)
-        rep(i, m) best_cnt[best[i].idx]++;
+      if(p >= 0.5) rep(i, m) best_cnt[best[i].idx]++;
       last_upd_time = spend_time;
     }else if(fast_exp((double)(best_score - score) / temp) > rnd(1024)/1024.0){
       best_score = score;
       update_values(change);
     }
   }
+  END:
   cerr << "\n";
   cerr << "Steps: " << steps << "\n";
   cerr << "Updated: " << update_num << "\n";
@@ -112,8 +104,8 @@ void solve(){
     cerr << " ";
   }
   cerr << "\n";
-  cout << awesome_score << " ";
-  File::output_result(best);
+
+  File::output_result(best, awesome_score);
 }
 
 }; // namespace solver

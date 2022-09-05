@@ -1,9 +1,11 @@
 #include <thread>
 #include <future>
 #include <omp.h>
+#define USE_MULTI_THREAD
 #include "library.hpp"
 
-constexpr double limit_time = 60.0 * 3;
+//constexpr double limit_time = 60.0 * 3;
+constexpr double limit_time = 135.0/17*(m-3) + 45;
 
 // Compile:
 // $ g++ yakinamashi_thread.cpp -Ofast -fopenmp -lgomp
@@ -11,7 +13,7 @@ constexpr double limit_time = 60.0 * 3;
 namespace Solver {
 
 constexpr int thread_num = 12 + 4;
-constexpr int max_tasks_num = 4096 * 4;
+constexpr int max_tasks_num = 4096 * 16;
 int tasks_num = max_tasks_num;
 
 RndInfo rnd_arrays[thread_num * max_tasks_num];
@@ -24,8 +26,9 @@ struct AnalyzeResult {
   int idx;
 };
 
+AnalyzeResult threads[thread_num];
+
 void solve(){
-  init();
   awesome_score = best_score;
   memcpy(awesome, best, sizeof(best));
 
@@ -33,11 +36,15 @@ void solve(){
   double last_upd_time = -1;
   int steps = 0;
 
-  constexpr double t0 = 2.5e3;
-  constexpr double t1 = 1.0e2;
+  double t0 = 2.5e3 * m / 20.0 * problem_length/(hz*7.5);
+  double t1 = 1.0e2 * m / 20.0 * problem_length/(hz*7.5);
   double temp = t0;
   StopWatch sw;
-  double spend_time = 0;
+  double spend_time = 0, p = 0;
+  int cnt = 0;
+  double temp_time = -1;
+  int best_cnt[n] = {};
+  if(contains_num == m) goto END;
   // 焼きなまし法(single thread)
   cerr << "Start Single Thread\n";
   for(; ; steps++){
@@ -45,7 +52,7 @@ void solve(){
     if(!(steps & mask)){
       spend_time = sw.get_time();
       if(spend_time > limit_time*0.0) break;
-      const double p = spend_time / limit_time;
+      p = spend_time / limit_time;
       temp = pow(t0, 1.0-p) * pow(t1, p);
       //temp = (t1 - t0) * p + t0;
     }
@@ -72,30 +79,34 @@ void solve(){
   cerr << "Score: " << best_score << "\n";
   cerr << "Start Multi Thread\n";
   // 山登り法(multi thread)
-  double temp_time = spend_time;
-  int cnt = 0;
+  temp_time = spend_time;
   for(; ; steps += thread_num * tasks_num){
     {
       spend_time = sw.get_time();
       if(spend_time > limit_time) break;
-      const double p = spend_time / limit_time;
+      p = spend_time / limit_time;
       temp = pow(t0, 1.0-p) * pow(t1, p);
       //temp = (t1 - t0) * p + t0;
+      if(spend_time-last_upd_time > 10.0){
+        cerr << "r";
+        last_upd_time = spend_time;
+        best_score = awesome_score;
+        init_array(awesome);
+      }
       if(spend_time - last_upd_time >= 1.0){
         tasks_num = max_tasks_num;
       }else{
-        tasks_num = max_tasks_num >> 3;
+        tasks_num = max_tasks_num >> 4;
       }
     }
     cnt += thread_num * tasks_num;
 
     const int calc_num = thread_num * tasks_num;
-    if(spend_time - last_upd_time <= 2.0){
+    if(spend_time - last_upd_time <= 2.0 || !rnd(10)){
       rep(i, calc_num) rnd_create(rnd_arrays[i]);
     }else{
       rep(i, calc_num) rnd_create2(rnd_arrays[i]);
     }
-    AnalyzeResult threads[thread_num];
     // multi thread
     #pragma omp parallel for
     rep(i, thread_num){
@@ -116,7 +127,7 @@ void solve(){
         best_change_idx = i*tasks_num + threads[i].idx;
       }
     }
-    const RndInfo &best_change = *(rnd_arrays + best_change_idx);
+    const RndInfo &best_change = rnd_arrays[best_change_idx];
     if(awesome_score > good_score){
       awesome_score = good_score;
       best_score = good_score;
@@ -124,12 +135,14 @@ void solve(){
       memcpy(awesome, best, sizeof(awesome));
       cerr << "u";
       update_num++;
+      if(p >= 0.5) rep(i, m) best_cnt[best[i].idx]++;
       last_upd_time = spend_time;
-    }else if(exp((double)(best_score - good_score) / temp) > rnd(1024)/1024.0){
+    }else if(fast_exp((double)(best_score - good_score) / temp) > rnd(1024)/1024.0){
       best_score = good_score;
       update_values(best_change);
     }
   }
+  END:
   best_score = awesome_score;
   init_array(awesome);
   cerr << "\n";
@@ -138,9 +151,52 @@ void solve(){
   cerr << "Last Update: " << last_upd_time << "\n";
   cerr << "Time per loop: " << (spend_time-temp_time)/cnt << "\n";
   cerr << "Final Score: " << best_score << "\n";
-
-  cout << awesome_score << " ";
-  File::output_result(best);
+  rep(i, half_n) cerr << best_cnt[i] << " ";
+  cerr << "\n";
+  rep(i, half_n) cerr << best_cnt[i + half_n] << " ";
+  cerr << "\n";
+  vector<std::pair<int,int>> v(n);
+  rep(i, n) v[i] = { best_cnt[i], i };
+  std::sort(v.rbegin(), v.rend());
+  int top[n] = {};
+  rep(i, m) top[v[i].second] = 1;
+  rep(i, half_n){
+    if(top[i]) cerr << "\x1b[1m";
+    bool ok = false;
+    rep(j, m) if(answer[j].idx == i){
+      ok = true; break;
+    }
+    rep(j, m) if(best[j].idx == i){
+      cerr << "\x1b[42m";
+      break;
+    }
+    if(ok) cerr << "\x1b[31m";
+    cerr << best_cnt[i];
+    cerr << "(J" << i+1 << ")";
+    cerr << "\x1b[49m"; // background color
+    cerr << "\x1b[39m"; // font color
+    cerr << "\x1b[0m"; // under bar
+    cerr << " ";
+  }
+  cerr << "\n";
+  rep(i, half_n){
+    if(top[i+half_n]) cerr << "\x1b[1m";
+    rep(j, m) if(answer[j].idx == i+half_n){
+      cerr << "\x1b[31m";
+      break;
+    }
+    rep(j, m) if(best[j].idx == i+half_n){
+      cerr << "\x1b[42m";
+      break;
+    }
+    cerr << best_cnt[i + half_n];
+    cerr << "(E" << i+1 << ")";
+    cerr << "\x1b[49m"; // background color
+    cerr << "\x1b[39m"; // font color
+    cerr << "\x1b[0m"; // under bar
+    cerr << " ";
+  }
+  File::output_result(best, awesome_score);
 }
 
 }; // namespace solver
