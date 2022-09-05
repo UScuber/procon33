@@ -39,7 +39,11 @@ int m, sep_num;
 double time_limit;
 vector<Wave> data;
 
-//generator.exe [export directory] [audios] [separates] [max time]
+// compile
+// % g++ generator.cpp -O2 -o generator.exe
+// $ g++ generator.cpp -O2 -o generator
+
+// generator.exe [export directory] [audios] [separates] [max time]
 int main(int argc, char *args[]){
   if(argc != 5){
     cerr << "arguments are too few or too many\n";
