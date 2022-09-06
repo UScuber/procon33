@@ -10,6 +10,11 @@ void write_text(const char *txt, const char *filename){
   fwrite(txt, 1, strlen(txt), fp);
   fclose(fp);
 }
+void copy_file(const char *from_file_name, const char *to_file_name){
+  ifstream is(from_file_name, ios::in | ios::binary);
+  ofstream os(to_file_name, ios::out | ios::binary);
+  os << is.rdbuf();
+}
 
 char buf[128];
 constexpr int half_n = 44;
@@ -28,13 +33,13 @@ int main(){
   system("g++ yakinamashi.cpp -Ofast");
   system("a.exe < in.txt > out.txt");
   system("g++ yakinamashi_thread.cpp -Ofast -fopenmp -lgomp");
-  system("copy out.txt in.txt");
+  copy_file("out.txt", "in.txt");
   system("a.exe < in.txt > out.txt");
 #else
   system("g++ yakinamashi.cpp -Ofast");
   system("./a.out < in.txt > out.txt");
   system("g++ yakinamashi_thread.cpp -Ofast -fopenmp -lgomp");
-  system("cp out.txt in.txt");
+  copy_file("out.txt", "in.txt");
   system("./a.out < in.txt > out.txt");
 #endif
   ifstream result("out.txt");
@@ -58,9 +63,11 @@ int main(){
       if(!ok) audio_diff_num++;
       if(!ok2) karuta_diff_num++;
     }
-    cerr << "Audio Diff: " << audio_diff_num << "/" << speech_num << "\n";
+    cerr << "\nAudio Diff: " << audio_diff_num << "/" << speech_num << "\n";
     cerr << "Karuta Diff: " << karuta_diff_num << "/" << speech_num << "\n";
+    int score; result >> score;
     cout << audio_diff_num << " " << karuta_diff_num << "\n";
+    cout << score << "\n";
   }
   // production
   else{
