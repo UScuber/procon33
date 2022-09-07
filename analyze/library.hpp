@@ -48,13 +48,13 @@ Data answer[m];
 
 // returns random [l, r)
 inline int rnd(const int l, const int r) noexcept{
-  static uint x = rand() | rand() << 16;
+  static uint x = (uint)rand() | (uint)rand() << 16;
   x ^= x << 13; x ^= x >> 17;
   return (int)((x ^= x << 5) % (uint)(r - l)) + l;
 }
 // returns random [0, rng)
 inline int rnd(const int rng) noexcept{
-  static uint x = rand() | rand() << 16;
+  static uint x = (uint)rand() | (uint)rand() << 16;
   x ^= x << 13; x ^= x >> 17;
   return (x ^= x << 5) % (uint)rng;
 }
@@ -126,28 +126,6 @@ void output_result(const Data best[m], const Score_Type final_score){
   cout << "Output\n";
   rep(i, m) cout << best[i].idx << " \n"[i == m - 1];
   cout << final_score << "\n";
-  /*
-  if(has_answer){
-    int audio_diff_num = 0;
-    int karuta_diff_num = 0;
-    rep(i, m){
-      bool ok = false, ok2 = false;
-      rep(j, m){
-        if(best[i].idx == answer[j].idx){
-          ok = ok2 = true;
-          break;
-        }else if(best[i].idx % half_n == answer[j].idx % half_n){
-          ok2 = true;
-        }
-      }
-      if(!ok) audio_diff_num++;
-      if(!ok2) karuta_diff_num++;
-    }
-    cerr << "Audio Diff: " << audio_diff_num << "/" << m << "\n";
-    cerr << "Karuta Diff: " << karuta_diff_num << "/" << m << "\n";
-    //cout << audio_diff_num << " " << karuta_diff_num << "\n";
-  }
-  */
   cout << "\n";
   cout << contains_num << "\n";
   rep(i, m){
