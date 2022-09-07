@@ -23,7 +23,7 @@ struct HashSet {
   public:
   HashSet() : keys(new Key[N]), r(rng()){}
   ~HashSet(){
-    delete keys;
+    delete[] keys;
   }
   void set(const Key &i){
     uint hash = (ull(i) * r) >> shift;
