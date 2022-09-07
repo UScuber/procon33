@@ -55,7 +55,7 @@ struct Hash {
   Hash(const ull base, const ull power[]) : base(base), power(power){}
   inline ull query(int l, int r) const{
     assert(max_len >= r - l);
-    assert(0 <= l && l <= r && r < h.size());
+    assert(0 <= l && l <= r && r < (int)h.size());
     return add(h[r], m - mul(h[l], power[r - l]));
   }
   void combine(const Hash<max_len> &a){

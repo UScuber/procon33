@@ -24,7 +24,7 @@ struct Wave {
     assert(0 <= i && i < L);
     return data[i];
   }
-  const int operator[](const int i) const noexcept{
+  int operator[](const int i) const noexcept{
     assert(0 <= i && i < L);
     return data[i];
   }
@@ -178,7 +178,7 @@ std::vector<Wave> separate_audio(const Wave &wave, const std::vector<int> &sep){
     for(int j = sep[i]; j < sep[i + 1]; j++){
       res[i].data.emplace_back(wave[j]);
     }
-    assert(res[i].data.size() == sep[i + 1] - sep[i]);
+    assert((int)res[i].data.size() == sep[i + 1] - sep[i]);
   }
   return res;
 }
