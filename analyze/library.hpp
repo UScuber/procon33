@@ -197,10 +197,12 @@ Data best[m];
 uint64_t used_idx = 0;
 Val_Type best_sub[ans_length];
 
+Score_Type problem_wave_score = inf_score;
 Score_Type best_score = inf_score;
 
 void init(){
   memcpy(best_sub, problem, sizeof(problem));
+  problem_wave_score = calc_score(best_sub);
   const vector<int> surely_contain = find_single_audio();
   contains_num = (int)surely_contain.size();
   cerr << "Surely Contains Num: " << contains_num << "\n";
@@ -232,10 +234,12 @@ void init(){
   }
   best_score = calc_score(best_sub);
 
+  cerr << "Problem Wave: " << problem_wave_score << "\n";
   cerr << "First Score: " << best_score << "\n";
 }
 void init_values(const Data pre_result[m], const int contain){
   memcpy(best_sub, problem, sizeof(problem));
+  problem_wave_score = calc_score(best_sub);
   contains_num = contain;
   memcpy(best, pre_result, sizeof(best));
   rep(i, m){
@@ -246,6 +250,7 @@ void init_values(const Data pre_result[m], const int contain){
   }
   best_score = calc_score(best_sub);
 
+  cerr << "Problem Wave: " << problem_wave_score << "\n";
   cerr << "First Score: " << best_score << "\n";
 }
 

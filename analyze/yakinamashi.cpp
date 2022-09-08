@@ -1,7 +1,7 @@
 #include "library.hpp"
 
 //constexpr double limit_time = 60.0;
-constexpr double limit_time = 45.0/17*(m-3) + 15;
+constexpr double limit_time = 60.0*1.5/17*(m-3) + 15;
 
 
 namespace Solver {
@@ -17,8 +17,8 @@ void solve(){
   double last_upd_time = -1;
   int steps = 0;
 
-  double t0 = 2.5e3 * m / 20.0 * problem_length/(hz*7.5);
-  double t1 = 1.0e2 * m / 20.0 * problem_length/(hz*7.5);
+  const double t0 = 2.5e3 * problem_wave_score / 3.9e7;
+  const double t1 = 1.0e2 * problem_wave_score / 3.9e7;
   double temp = t0;
   double spend_time = 0, p = 0;
   StopWatch sw;
@@ -69,15 +69,10 @@ void solve(){
   rep(i, m) top[v[i].second] = 1;
   rep(i, half_n){
     if(top[i]) cerr << "\x1b[1m";
-    bool ok = false;
-    rep(j, m) if(answer[j].idx == i){
-      ok = true; break;
-    }
     rep(j, m) if(best[j].idx == i){
       cerr << "\x1b[42m";
       break;
     }
-    if(ok) cerr << "\x1b[31m";
     cerr << best_cnt[i];
     cerr << "(J" << i+1 << ")";
     cerr << "\x1b[49m"; // background color
@@ -88,10 +83,6 @@ void solve(){
   cerr << "\n";
   rep(i, half_n){
     if(top[i+half_n]) cerr << "\x1b[1m";
-    rep(j, m) if(answer[j].idx == i+half_n){
-      cerr << "\x1b[31m";
-      break;
-    }
     rep(j, m) if(best[j].idx == i+half_n){
       cerr << "\x1b[42m";
       break;

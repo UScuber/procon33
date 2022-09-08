@@ -5,7 +5,7 @@
 #include "library.hpp"
 
 //constexpr double limit_time = 60.0 * 3;
-constexpr double limit_time = 135.0/17*(m-3) + 45;
+constexpr double limit_time = 120.0/17*(m-3) + 45;
 
 // Compile:
 // $ g++ yakinamashi_thread.cpp -Ofast -fopenmp -lgomp
@@ -26,7 +26,8 @@ struct AnalyzeResult {
   int idx;
 };
 
-AnalyzeResult threads[thread_num];
+//AnalyzeResult threads[thread_num];
+Score_Type scores[thread_num * max_tasks_num];
 
 void solve(){
   awesome_score = best_score;
@@ -36,8 +37,8 @@ void solve(){
   double last_upd_time = -1;
   int steps = 0;
 
-  double t0 = 2.5e3 * m / 20.0 * problem_length/(hz*7.5);
-  double t1 = 1.0e2 * m / 20.0 * problem_length/(hz*7.5);
+  const double t0 = 2.5e3 * problem_wave_score / 1.1e8;
+  const double t1 = 1.0e2 * problem_wave_score / 1.1e8;
   double temp = t0;
   StopWatch sw;
   double spend_time = 0, p = 0;
@@ -51,7 +52,7 @@ void solve(){
     constexpr int mask = (1 << 9) - 1;
     if(!(steps & mask)){
       spend_time = sw.get_time();
-      if(spend_time > limit_time*0.0) break;
+      if(spend_time > limit_time*0.05) break;
       p = spend_time / limit_time;
       temp = pow(t0, 1.0-p) * pow(t1, p);
       //temp = (t1 - t0) * p + t0;
@@ -78,7 +79,7 @@ void solve(){
   cerr << "\n";
   cerr << "Score: " << best_score << "\n";
   cerr << "Start Multi Thread\n";
-  // 山登り法(multi thread)
+  // 焼きなまし法(multi thread)
   temp_time = spend_time;
   for(; ; steps += thread_num * tasks_num){
     {
@@ -96,35 +97,26 @@ void solve(){
       if(spend_time - last_upd_time >= 1.0){
         tasks_num = max_tasks_num;
       }else{
-        tasks_num = max_tasks_num >> 4;
+        tasks_num = max_tasks_num >> 5;
       }
     }
     cnt += thread_num * tasks_num;
 
     const int calc_num = thread_num * tasks_num;
-    if(spend_time - last_upd_time <= 2.0 || !rnd(10)){
+    if(spend_time - last_upd_time <= 3.0 || !rnd(10)){
       rep(i, calc_num) rnd_create(rnd_arrays[i]);
     }else{
       rep(i, calc_num) rnd_create2(rnd_arrays[i]);
     }
     // multi thread
     #pragma omp parallel for
-    rep(i, thread_num){
-      threads[i].score = inf_score;
-      rep(j, tasks_num){
-        const Score_Type score = calc_one_changed_ans(rnd_arrays[i*tasks_num + j]);
-        if(threads[i].score > score){
-          threads[i].score = score;
-          threads[i].idx = j;
-        }
-      }
-    }
+    rep(i, calc_num) scores[i] = calc_one_changed_ans(rnd_arrays[i]);
     int best_change_idx = -1;
     Score_Type good_score = inf_score;
-    rep(i, thread_num){
-      if(good_score > threads[i].score){
-        good_score = threads[i].score;
-        best_change_idx = i*tasks_num + threads[i].idx;
+    rep(i, calc_num){
+      if(good_score > scores[i]){
+        good_score = scores[i];
+        best_change_idx = i;
       }
     }
     const RndInfo &best_change = rnd_arrays[best_change_idx];
@@ -162,15 +154,10 @@ void solve(){
   rep(i, m) top[v[i].second] = 1;
   rep(i, half_n){
     if(top[i]) cerr << "\x1b[1m";
-    bool ok = false;
-    rep(j, m) if(answer[j].idx == i){
-      ok = true; break;
-    }
     rep(j, m) if(best[j].idx == i){
       cerr << "\x1b[42m";
       break;
     }
-    if(ok) cerr << "\x1b[31m";
     cerr << best_cnt[i];
     cerr << "(J" << i+1 << ")";
     cerr << "\x1b[49m"; // background color
@@ -181,10 +168,6 @@ void solve(){
   cerr << "\n";
   rep(i, half_n){
     if(top[i+half_n]) cerr << "\x1b[1m";
-    rep(j, m) if(answer[j].idx == i+half_n){
-      cerr << "\x1b[31m";
-      break;
-    }
     rep(j, m) if(best[j].idx == i+half_n){
       cerr << "\x1b[42m";
       break;
