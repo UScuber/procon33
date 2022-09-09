@@ -1,7 +1,7 @@
 #include "library.hpp"
 
 //constexpr double limit_time = 60.0;
-constexpr double limit_time = 60.0*1.5/17*(m-3) + 15;
+constexpr double limit_time = 45.0*1.5/17*(m-3) + 15;
 
 
 namespace Solver {

@@ -21,12 +21,6 @@ RndInfo rnd_arrays[thread_num * max_tasks_num];
 Data awesome[m];
 Score_Type awesome_score = inf_score;
 
-struct AnalyzeResult {
-  Score_Type score;
-  int idx;
-};
-
-//AnalyzeResult threads[thread_num];
 Score_Type scores[thread_num * max_tasks_num];
 
 void solve(){
@@ -52,7 +46,7 @@ void solve(){
     constexpr int mask = (1 << 9) - 1;
     if(!(steps & mask)){
       spend_time = sw.get_time();
-      if(spend_time > limit_time*0.05) break;
+      if(spend_time > limit_time*0.1) break;
       p = spend_time / limit_time;
       temp = pow(t0, 1.0-p) * pow(t1, p);
       //temp = (t1 - t0) * p + t0;
