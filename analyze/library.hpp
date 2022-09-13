@@ -111,12 +111,11 @@ void read_values(){
     std::cin >> tmp; // score
     std::cin >> contain; // contains num
     // data
-    static constexpr int p = 3;
     rep(i, m){
       std::cin >> pre_values[i].idx >> pre_values[i].pos >> pre_values[i].st >> pre_values[i].len;
-      pre_values[i].pos *= p;
-      pre_values[i].st *= p;
-      pre_values[i].len *= p;
+      pre_values[i].pos *= analyze_change_prop;
+      pre_values[i].st *= analyze_change_prop;
+      pre_values[i].len *= analyze_change_prop;
     }
     Solver::init_values(pre_values, contain);
   }else assert(0);
@@ -268,9 +267,9 @@ void init_array(const Data data[]) noexcept{
 }
 
 
-inline void rnd_create(RndInfo &change) noexcept{
-  constexpr int rng = hz;
-  const int t = rnd(7);
+inline void rnd_create(RndInfo &change, const int rng = hz) noexcept{
+  //constexpr int rng = hz;
+  const int t = rnd(9);
   // select wav and change pos
   if(t == 0){
     change.idx = rnd(m);
@@ -280,7 +279,7 @@ inline void rnd_create(RndInfo &change) noexcept{
     change.pos = rnd(problem_length - change.len + 1);
   }
   // select other wav and swap and change pos
-  else if(t == 1 || t == 6){
+  else if(t == 1 || t == 7){
     change.idx = rnd(contains_num, m);
     change.nxt_idx = rnd(n);
     while((used_idx >> (change.nxt_idx % half_n) & 1) && best[change.idx].idx % half_n != change.nxt_idx % half_n){
@@ -317,8 +316,16 @@ inline void rnd_create(RndInfo &change) noexcept{
     //change.st = rnd(min(audio_length[change.nxt_idx] - change.len, problem_length-change.pos) + 1);
     change.st = rnd(max(0, best[change.idx].st-rng), min(audio_length[change.nxt_idx]-change.len, best[change.idx].st+rng) + 1);
   }
-  // change wav type
+  // change st,pos and len
   else if(t == 5){
+    change.idx = rnd(m);
+    change.nxt_idx = best[change.idx].idx;
+    change.pos = rnd(best[change.idx].pos - min(rng, min(best[change.idx].pos, best[change.idx].st)), min(best[change.idx].pos+rng, best[change.idx].pos+best[change.idx].len-hz) + 1);
+    change.st = (change.pos - best[change.idx].pos) + best[change.idx].st;
+    change.len = best[change.idx].len - (change.pos - best[change.idx].pos);
+  }
+  // change wav type
+  else if(t == 6 || t == 8){
     change.idx = rnd(contains_num, m);
     change.nxt_idx = rnd(n);
     while((used_idx >> (change.nxt_idx % half_n) & 1) && best[change.idx].idx % half_n != change.nxt_idx % half_n){
