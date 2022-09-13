@@ -2,8 +2,6 @@
 #include <string>
 #include <fstream>
 
-const char *file_path = "results2.csv";
-
 void init(){
 #if defined(_WIN32) || defined(_WIN64)
   system("g++ generator.cpp -O2 -o generator.exe");
@@ -25,20 +23,20 @@ void run_program(){
 }
 
 int main(int argc, char *argv[]){
-  if(argc != 2){
-    printf("error: train.exe [train num]");
+  if(argc != 3){
+    printf("error: train.exe [file path] [train num]");
     return 0;
   }
-  const int train_num = std::stoi(argv[1]);
+  const int train_num = std::stoi(argv[2]);
   init();
   for(int i = 0; i < train_num; i++){
     printf("START: %d\n", i+1);
     run_program();
-    std::ofstream result(file_path, std::ios::app);
+    std::ofstream result(argv[1], std::ios::app);
     std::ifstream output("res.txt");
     int audio_diff, karuta_diff, score;
     output >> audio_diff >> karuta_diff >> score;
-    result << audio_diff << ", " << karuta_diff << ", " << score << "\n";
+    result << audio_diff << "," << karuta_diff << "," << score << "\n";
     output.close();
     result.close();
   }
