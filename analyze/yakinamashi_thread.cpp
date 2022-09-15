@@ -13,7 +13,7 @@ constexpr double limit_time = 120.0/17*(m-3) + 45;
 namespace Solver {
 
 constexpr int thread_num = 12 + 4;
-constexpr int max_tasks_num = 4096 * 16;
+constexpr int max_tasks_num = 4096 * 4;
 int tasks_num = max_tasks_num;
 
 RndInfo rnd_arrays[thread_num * max_tasks_num];
@@ -31,8 +31,8 @@ void solve(){
   double last_upd_time = -1;
   int steps = 0;
 
-  const double t0 = 2.5e3 * problem_wave_score / 1.1e8;
-  const double t1 = 1.0e2 * problem_wave_score / 1.1e8;
+  const double t0 = 2.5e3 * 4;
+  const double t1 = 1.0e2;
   double temp = t0;
   StopWatch sw;
   double spend_time = 0, p = 0;

@@ -17,8 +17,8 @@ void solve(){
   double last_upd_time = -1;
   int steps = 0;
 
-  const double t0 = 2.5e3 * problem_wave_score / 3.9e7;
-  const double t1 = 1.0e2 * problem_wave_score / 3.9e7;
+  const double t0 = 2.5e3 * analyze_sampling_hz / 6000.0 * 1.2;
+  const double t1 = 1.0e2 * analyze_sampling_hz / 6000.0 * 1.2;
   double temp = t0;
   double spend_time = 0, p = 0;
   StopWatch sw;

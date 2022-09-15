@@ -267,9 +267,9 @@ void init_array(const Data data[]) noexcept{
 }
 
 
-inline void rnd_create(RndInfo &change, const int rng = hz) noexcept{
+inline void rnd_create(RndInfo &change, const int rng = hz/4) noexcept{
   //constexpr int rng = hz;
-  const int t = rnd(9);
+  const int t = rnd(8);
   // select wav and change pos
   if(t == 0){
     change.idx = rnd(m);
@@ -325,7 +325,7 @@ inline void rnd_create(RndInfo &change, const int rng = hz) noexcept{
     change.len = best[change.idx].len - (change.pos - best[change.idx].pos);
   }
   // change wav type
-  else if(t == 6 || t == 8){
+  else if(t == 6){
     change.idx = rnd(contains_num, m);
     change.nxt_idx = rnd(n);
     while((used_idx >> (change.nxt_idx % half_n) & 1) && best[change.idx].idx % half_n != change.nxt_idx % half_n){
