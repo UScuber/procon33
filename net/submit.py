@@ -42,8 +42,11 @@ def problem_get():
     print(res_problem.text)
     # 受けとったjsonを辞書型に変換
     problem_dic = json.loads(res_problem.text)
+    # 札数を../analyze/testのinformation.txtに書き込む
+    with open("../analyze/test/information.txt", "w") as txt:
+        print(problem_dic["data"], file=txt)
     # 変換したjsonから選択数を抽出する
-    return int(problem_dic["chunks"])
+    return problem_dic
 
 
 """/problem/chunksに分割数をPOSTリクエストで送って、各分割データのファイル名の配列のjsonを返す"""
@@ -71,6 +74,25 @@ def file_get(res_chunks):
     os.chdir("..")
 
 
+
+
+
+"""../analyzeにあるres.txtから札の種類を読み込む"""
+def read_res():
+    res_ls = []
+    # res.txtに書かれている札種を半角スペース区切りで分割してリストにする
+    with open("../analyze/res.txt") as txt:
+        res = txt.read()
+        res_ls = (res.replace("\n", "")).split(" ")
+    # res.txtから読み込んだリストを回答形式に合うように変更してリストにする
+    res_ls.sort()
+    fuda_ls = []
+    for fuda in res_ls():
+        if len(fuda) == 1:
+            fuda_ls.append = "0" + fuda
+    return fuda_ls
+
+
 """/problemに回答のjsonをPOSTリクエストで送り、返ってきたjsonファイルを受け取る"""
 def problem_post():
     res_problem = requests.post(URL + "/problem" + query, json.dump({}), headers={'Content-Type': 'application/json'}, verify=False)
@@ -78,6 +100,12 @@ def problem_post():
 
 
 if __name__ == "__main__":
-    match_get()
-    select = problem_get()
-    file_get(chunks_post(select))
+    """最終的に音声ファイルをダウンロードする"""
+    if (sys.argv[1] == "download" or sys.argv[1] == "Download" or sys.argv[1] == "DOWNLOAD"):
+        match_get()
+        problem_information = problem_get()
+        file_get(chunks_post(problem_information["chunks"]))
+    """分析結果のjsonファイルを提出する"""
+    if (sys.argv[1] == "submit" or sys.argv[1] == "Submit" or sys.argv[1] == "SUBMIT"):
+        read_res()
+        problem_post()
