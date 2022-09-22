@@ -65,13 +65,13 @@ void output_result(ifstream &result, bool is_eof, bool is_out){
 int main(){
   ifstream info("test/information.txt");
   info >> speech_num;
-  cerr << "Run TIme: " << (180.0/17*(speech_num-3) + 60) << "[s]\n";
+  cerr << "Run TIme: " << (180.0/17*(speech_num-3) + 60) + 15 << "[s]\n";
   sprintf(buf, "constexpr int m = %d;\n", speech_num);
   write_text(buf, "select_num.hpp"); // update speech num
   for(int i = 0; i < speech_num; i++) info >> indices[i];
   write_text("Input\n", "in.txt");
 #if defined(_WIN32) || defined(_WIN64)
-  system("g++ yakinamashi.cpp -Ofast");
+  system("g++ yakinamashi.cpp -Ofast -std=c++17 -fopenmp -lgomp");
   system("a.exe < in.txt > out.txt");
   ifstream pre_result("out.txt");
   output_result(pre_result, info.eof(), 0);
