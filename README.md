@@ -4,7 +4,7 @@
 
 ### yakinamashi.cpp
  - シングルスレッドで音声の解析をする
- - Compile: $ g++ yakinamashi.cpp -Ofast
+ - Compile: $ g++ yakinamashi.cpp -Ofast -fopenmp -lgomp
 
 ### yakinamashi_thread.cpp
  - マルチスレッドでの音声の解析をする(pthread使います)
