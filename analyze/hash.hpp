@@ -1,145 +1,175 @@
 #include <vector>
-#include <string>
 #include <chrono>
-#include <bitset>
+
+namespace HashImpl {
 
 using ull = unsigned long long;
+using uint = unsigned int;
+
+constexpr uint w = 1 << 6;
+constexpr ull m = (1ULL << 61) - 1;
+
+ull gen_rnd() noexcept{
+  ull m = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+  m ^= m >> 16;
+  m ^= m << 32;
+  return m;
+}
+inline constexpr ull add(ull a, const ull b) noexcept{
+  if((a += b) >= m) a -= m;
+  return a;
+}
+inline constexpr ull mul(const ull a, const ull b) noexcept{
+  const __uint128_t c = (__uint128_t)a * b;
+  return add(c >> 61, c & m);
+}
+inline constexpr ull fma(const ull a, const ull b, const ull c) noexcept{
+  const __uint128_t d = (__uint128_t)a * b + c;
+  return add(d >> 61, d & m);
+}
 
 template <class Key, int logn>
 struct HashSet {
-  using uint = unsigned int;
   private:
-  static constexpr unsigned int N = 1 << logn;
+  static constexpr uint N = 1 << logn;
+  #define rem(x) ((x) & (w - 1U))
   Key *keys;
-  std::bitset<N> flag;
-  ull r;
+  ull *flag;
+  const ull r;
   static constexpr uint shift = 64 - logn;
-  ull rng() const{
-    ull m = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-    m ^= m >> 16;
-    m ^= m << 32;
-    return m;
-  }
   public:
-  HashSet() : keys(new Key[N]), r(rng()){}
+  constexpr HashSet() : keys(new Key[N]), flag(new ull[N/w]()), r(gen_rnd()){}
   ~HashSet(){
     delete[] keys;
+    delete[] flag;
   }
-  void set(const Key &i){
+  inline constexpr void set(const Key &i) noexcept{
     uint hash = (ull(i) * r) >> shift;
     while(true){
-      if(!flag[hash]){
+      if(!(flag[hash/w] >> rem(hash) & 1U)){
         keys[hash] = i;
-        flag[hash] = 1;
+        flag[hash/w] |= 1ULL << rem(hash);
         return;
       }
       if(keys[hash] == i) return;
       hash = (hash + 1) & (N - 1);
     }
   }
-  bool find(const Key &i){
+  inline constexpr bool find(const Key &i) const noexcept{
     uint hash = (ull(i) * r) >> shift;
     while(true){
-      if(!flag[hash]) return false;
+      if(!(flag[hash/w] >> rem(hash) & 1U)) return false;
       if(keys[hash] == i) return true;
       hash = (hash + 1) & (N - 1);
     }
   }
+  #undef rem
 };
+
+template <class Key, class Val, int logn>
+struct HashMap {
+  private:
+  static constexpr uint N = 1 << logn;
+  #define rem(x) ((x) & (w - 1U))
+  Key *keys;
+  Val *vals;
+  ull *flag;
+  const ull r;
+  static constexpr uint shift = 64 - logn;
+  public:
+  constexpr HashMap() : keys(new Key[N]), vals(new Val[N]), flag(new ull[N/w]()), r(gen_rnd()){}
+  ~HashMap(){
+    delete[] keys;
+    delete[] vals;
+    delete[] flag;
+  }
+  inline constexpr void set(const Key &i, const Val v) noexcept{
+    uint hash = (ull(i) * r) >> shift;
+    while(true){
+      if(!(flag[hash/w] >> rem(hash) & 1U)){
+        keys[hash] = i;
+        flag[hash/w] |= 1ULL << rem(hash);
+        vals[hash] = v;
+        return;
+      }
+      if(keys[hash] == i){
+        vals[hash] = v;
+        return;
+      }
+      hash = (hash + 1) & (N - 1);
+    }
+  }
+  inline constexpr Val get(const Key &i) noexcept{
+    uint hash = (ull(i) * r) >> shift;
+    while(true){
+      if(!(flag[hash/w] >> rem(hash) & 1U)){
+        assert(0);
+      }
+      if(keys[hash] == i) return vals[hash];
+      hash = (hash + 1) & (N - 1);
+    }
+  }
+  inline constexpr bool find(const Key &i) const noexcept{
+    uint hash = (ull(i) * r) >> shift;
+    while(true){
+      if(!(flag[hash/w] >> rem(hash) & 1U)) return false;
+      if(keys[hash] == i) return true;
+      hash = (hash + 1) & (N - 1);
+    }
+  }
+  #undef rem
+};
+
 
 template <int max_len>
 struct Hash {
-  static constexpr ull m = (1ULL << 61) - 1;
   const ull base;
   std::vector<ull> h;
-  Hash(const ull base, const ull power[]) : base(base), power(power){}
-  inline ull query(int l, int r) const{
+  constexpr Hash(const ull base, const ull power[]) : base(base), power(power){}
+  inline constexpr ull query(const int l, const int r) const noexcept{
     assert(max_len >= r - l);
     assert(0 <= l && l <= r && r < (int)h.size());
     return add(h[r], m - mul(h[l], power[r - l]));
   }
-  void combine(const Hash<max_len> &a){
-    const int len = h.size();
-    h.insert(h.end(), a.h.begin()+1, a.h.end());
-    const int tot_len = h.size();
-    ull val = h[len - 1];
-    for(int i = len; i < tot_len; i++){
-      val = mul(val, base);
-      h[i] = add(val, h[i]);
-    }
+  // query(i, i+max_len)
+  inline constexpr ull query(const int i) const noexcept{
+    return add(h[i+max_len], m - mul(h[i], power[max_len]));
   }
-  inline int size() const{ return h.size(); }
+  inline int size() const noexcept{ return h.size(); }
   private:
   const ull *power;
-  inline ull add(ull a, const ull b) const{
-    if((a += b) >= m) a -= m;
-    return a;
-  }
-  inline ull mul(const ull a, const ull b) const{
-    const __uint128_t c = (__uint128_t)a * b;
-    return add(c >> 61, c & m);
-  }
-  inline ull fma(const ull a, const ull b, const ull c) const{
-    const __uint128_t d = (__uint128_t)a * b + c;
-    return add(d >> 61, d & m);
-  }
 };
 
 template <int max_len>
 struct RollingHash {
-  static constexpr ull m = (1ULL << 61) - 1;
+  static constexpr ull mod = m;
   const ull base;
-  RollingHash() : base(rnd()){
+  constexpr RollingHash() : base(rnd()){
     power[0] = 1;
     for(int i = 0; i < max_len; i++){
       power[i + 1] = mul(power[i], base);
     }
   }
-  Hash<max_len> gen(const std::string &s) const{
-    const int len = s.size();
-    Hash<max_len> hash(base, power);
-    hash.h.resize(len + 1);
-    for(int i = 0; i < len; i++){
-      hash.h[i+1] = fma(hash.h[i], base, s[i]);
-    }
-    return hash;
-  }
   template <class T>
-  Hash<max_len> gen(const std::vector<T> &s) const{
+  constexpr Hash<max_len> gen(const std::vector<T> &s) const noexcept{
     const int len = s.size();
     Hash<max_len> hash(base, power);
     hash.h.resize(len + 1);
     for(int i = 0; i < len; i++){
-      hash.h[i+1] = fma(hash.h[i], base, s[i]);
+      if(s[i] < 0) hash.h[i+1] = fma(hash.h[i], base, (long long)m + (long long)s[i]);
+      else hash.h[i+1] = fma(hash.h[i], base, s[i]);
     }
     return hash;
-  }
-  ull combine(ull h1, ull h2, ull h2_len) const{
-    assert(max_len >= h2_len);
-    return fma(h1, power[h2_len], h2);
-  }
-  ull combine(const Hash<max_len> &a, int l1, int r1, const Hash<max_len> &b, int l2, int r2) const{
-    assert(max_len >= r2 - l2);
-    return fma(a.query(l1, r1), power[r2-l2], b.query(l2, r2));
   }
   private:
   ull power[max_len + 1];
-  ull rnd() const{
+  constexpr ull rnd() const noexcept{
     ull b = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
     b ^= b >> 16;
     b ^= b << 32;
-    return b % (m - 2) + 2;
-  }
-  inline ull add(ull a, const ull b) const{
-    if((a += b) >= m) a -= m;
-    return a;
-  }
-  inline ull mul(const ull a, const ull b) const{
-    const __uint128_t c = (__uint128_t)a * b;
-    return add(c >> 61, c & m);
-  }
-  inline ull fma(const ull a, const ull b, const ull c) const{
-    const __uint128_t d = (__uint128_t)a * b + c;
-    return add(d >> 61, d & m);
+    return 1930499541427916139ULL;
+    //return b % (m - 2) + 2;
   }
 };
+
+}; // namespace HashImpl
