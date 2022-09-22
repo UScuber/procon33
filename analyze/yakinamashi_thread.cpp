@@ -1,14 +1,7 @@
-#include <thread>
-#include <future>
-#include <omp.h>
 #define USE_MULTI_THREAD
 #include "library.hpp"
 
-//constexpr double limit_time = 60.0 * 3;
-constexpr double limit_time = 120.0/17*(m-3) + 45;
-
-// Compile:
-// $ g++ yakinamashi_thread.cpp -Ofast -fopenmp -lgomp
+constexpr double limit_time = (45.0/17*(m-3) + 15) * 0.8;
 
 namespace Solver {
 
@@ -31,8 +24,8 @@ void solve(){
   double last_upd_time = -1;
   int steps = 0;
 
-  const double t0 = 2.5e3 * 4;
-  const double t1 = 1.0e2;
+  constexpr double t0 = 2.5e3 * 0.85;
+  constexpr double t1 = 1.0e2 * 0.8;
   double temp = t0;
   StopWatch sw;
   double spend_time = 0, p = 0;
@@ -48,8 +41,8 @@ void solve(){
       spend_time = sw.get_time();
       if(spend_time > limit_time*0.1) break;
       p = spend_time / limit_time;
-      temp = pow(t0, 1.0-p) * pow(t1, p);
-      //temp = (t1 - t0) * p + t0;
+      //temp = pow(t0, 1.0-p) * pow(t1, p);
+      temp = (t1 - t0) * p + t0;
     }
     RndInfo change;
     rnd_create(change);
@@ -80,9 +73,9 @@ void solve(){
       spend_time = sw.get_time();
       if(spend_time > limit_time) break;
       p = spend_time / limit_time;
-      temp = pow(t0, 1.0-p) * pow(t1, p);
-      //temp = (t1 - t0) * p + t0;
-      if(spend_time-last_upd_time > 10.0){
+      //temp = pow(t0, 1.0-p) * pow(t1, p);
+      temp = (t1 - t0) * p + t0;
+      if(spend_time-last_upd_time > 7.0){
         cerr << "r";
         last_upd_time = spend_time;
         best_score = awesome_score;
@@ -97,7 +90,7 @@ void solve(){
     cnt += thread_num * tasks_num;
 
     const int calc_num = thread_num * tasks_num;
-    if(spend_time - last_upd_time <= 3.0 || !rnd(10)){
+    if(spend_time - last_upd_time <= 3.0 || !rnd(8)){
       rep(i, calc_num) rnd_create(rnd_arrays[i]);
     }else{
       rep(i, calc_num) rnd_create2(rnd_arrays[i]);
