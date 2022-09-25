@@ -1,6 +1,6 @@
 #include "library.hpp"
 
-constexpr double limit_time = (45.0/17*(m-3) + 15) * 3;
+constexpr double limit_time = 180.0/17*(m-3) + 45;
 
 
 namespace Solver {
@@ -18,7 +18,7 @@ void solve(){
 
   constexpr double t0 = 2.5e3 * analyze_sampling_hz / 6000.0;
   double t1 = 1.0e2 * analyze_sampling_hz / 6000.0;
-  t1 = (t1 - t0) * 2.3 / 3.0 + t0;
+  //t1 = (t1 - t0) * 2.3 / 3.0 + t0;
   double temp = t0;
   double spend_time = 0, p = 0;
   StopWatch sw;

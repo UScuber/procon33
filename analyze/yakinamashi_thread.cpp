@@ -1,7 +1,7 @@
 #define USE_MULTI_THREAD
 #include "library.hpp"
 
-constexpr double limit_time = (45.0/17*(m-3) + 15) * 0.8;
+constexpr double limit_time = 60.0/17*(m-3) + 15;
 
 namespace Solver {
 
@@ -24,8 +24,8 @@ void solve(){
   double last_upd_time = -1;
   int steps = 0;
 
-  constexpr double t0 = 2.5e3 * 0.85;
-  constexpr double t1 = 1.0e2 * 0.8;
+  constexpr double t0 = 2.5e3 * analyze_sampling_hz / 6000.0 * 0.9;
+  constexpr double t1 = 1.0e2 * analyze_sampling_hz / 6000.0 * 0.8;
   double temp = t0;
   StopWatch sw;
   double spend_time = 0, p = 0;
@@ -41,8 +41,8 @@ void solve(){
       spend_time = sw.get_time();
       if(spend_time > limit_time*0.1) break;
       p = spend_time / limit_time;
-      //temp = pow(t0, 1.0-p) * pow(t1, p);
-      temp = (t1 - t0) * p + t0;
+      temp = pow(t0, 1.0-p) * pow(t1, p);
+      //temp = (t1 - t0) * p + t0;
     }
     RndInfo change;
     rnd_create(change);
@@ -73,8 +73,8 @@ void solve(){
       spend_time = sw.get_time();
       if(spend_time > limit_time) break;
       p = spend_time / limit_time;
-      //temp = pow(t0, 1.0-p) * pow(t1, p);
-      temp = (t1 - t0) * p + t0;
+      temp = pow(t0, 1.0-p) * pow(t1, p);
+      //temp = (t1 - t0) * p + t0;
       if(spend_time-last_upd_time > 7.0){
         cerr << "r";
         last_upd_time = spend_time;
