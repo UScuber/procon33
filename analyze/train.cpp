@@ -12,12 +12,21 @@ void init(){
 #endif
 }
 
-void run_program(){
+void run_program(const int seed = -1){
+  char buf[64];
 #if defined(_WIN32) || defined(_WIN64)
-  system("generator.exe test 20 1 8");
+  if(seed == -1) system("generator.exe test 20 1 8");
+  else{
+    sprintf(buf, "generator.exe test 20 1 8 %d", seed);
+    system(buf);
+  }
   system("run.exe > res.txt");
 #else
-  system("./generator test 20 1 8");
+  if(seed == -1) system("./generator test 20 1 8");
+  else{
+    sprintf(buf, "./generator test 20 1 8 %d", seed);
+    system(buf);
+  }
   system("./run > res.txt");
 #endif
 }
@@ -31,7 +40,7 @@ int main(int argc, char *argv[]){
   init();
   for(int i = 0; i < train_num; i++){
     printf("START: %d\n", i+1);
-    run_program();
+    run_program(i);
     std::ofstream result(argv[1], std::ios::app);
     std::ifstream output("res.txt");
     int audio_diff, karuta_diff, score;
