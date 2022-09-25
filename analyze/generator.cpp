@@ -20,10 +20,10 @@ void write_text(const char *txt, const char *filename){
 
 
 inline uint randxor() noexcept{
-  static uint x = rand() | rand() << 16;
-  static uint y = rand() | rand() << 16;
-  static uint z = rand() | rand() << 16;
-  static uint w = rand() | rand() << 16;
+  static uint x = (uint)rand() | (uint)rand() << 16;
+  static uint y = (uint)rand() | (uint)rand() << 16;
+  static uint z = (uint)rand() | (uint)rand() << 16;
+  static uint w = (uint)rand() | (uint)rand() << 16;
   //static uint x=123456789,y=362436069,z=521288629,w=88675123;
   uint t=(x^(x<<11));x=y;y=z;z=w; return (w=(w^(w>>19))^(t^(t>>8)));
 }
@@ -39,17 +39,14 @@ int m, sep_num;
 double time_limit;
 vector<Wave> data;
 
-// compile
-// % g++ generator.cpp -O2 -o generator.exe
-// $ g++ generator.cpp -O2 -o generator
-
-// generator.exe [export directory] [audios] [separates] [max time]
+// generator.exe [export directory] [audios] [separates] [max time] ([seed])
 int main(int argc, char *args[]){
-  if(argc != 5){
-    cerr << "arguments are too few or too many\n";
+  if(argc < 5 || 6 < argc){
+    cerr << "error: Run: $ generator.exe [export directory] [audios] [separates] [max time] ([seed])\n";
     return 1;
   }
-  srand(time(NULL));
+  if(argc == 5) srand(time(NULL));
+  else srand(atoi(args[5]));
   const int m = atoi(args[2]);
   const int sep_num = atoi(args[3]);
   const double time_limit = atoi(args[4]);
