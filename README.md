@@ -13,12 +13,12 @@
 ### generator.cpp
  - ランダムで問題の作成をする
  - Compile: $ g++ generator.cpp -O2 -o generator
- - Run: $ ./generator test [札の数] [分割数] [音声の最大長(s)]
+ - Run: $ ./generator test [札の数] [分割数] [音声の最大長(s)] ([seed値(デフォルトはtime(NULL))])
 
 ### run.cpp
  - testディレクトリにあるinformation.txtとproblem.wavを使って問題を解く
  - Compile: $ g++ run.cpp -O2 -o run
- - Run: $ ./run ([seed値(デフォルトはtime(NULL))])
+ - Run: $ ./run
 
 ### train.cpp
  - run.cppを複数回動かしてテストする
