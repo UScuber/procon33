@@ -110,12 +110,17 @@ def read_res():
     with open("../analyze/res.txt") as txt:
         res = txt.read()
         res_ls = (res.replace("\n", "")).split(" ")
-    # res.txtから読み込んだリストを回答形式に合うように変更してリストにする
+    # 読み込んだリストを整数型にすると同時に提出用に数字を編集する
+    for i in len(res_ls):
+        res_ls[i] = (int(res_ls[i])) % 44 + 1
+    # res.txtから読み込んだリストを回答形式に合うように変更してリストにす る
     res_ls.sort()
     fuda_ls = []
     for fuda in res_ls:
-        if len(fuda) == 1:
-            fuda_ls.append("0" + fuda)
+        if len(str(fuda)) == 1:
+            fuda_ls.append("0" + str(fuda))
+        else:
+            fuda_ls.append(str(fuda))
     print(fuda_ls)
     return fuda_ls
 
