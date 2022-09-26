@@ -32,15 +32,16 @@ void run_program(const int seed = -1){
 }
 
 int main(int argc, char *argv[]){
-  if(argc != 3){
-    printf("error: train.exe [file path] [train num]");
+  if(argc != 3 && argc != 4){
+    printf("error: train.exe [file path] [train num] ([seed])");
     return 0;
   }
   const int train_num = std::stoi(argv[2]);
+  const int seed = argc == 4 ? std::stoi(argv[3]) : 0;
   init();
   for(int i = 0; i < train_num; i++){
     printf("START: %d\n", i+1);
-    run_program(i);
+    run_program(seed + i);
     std::ofstream result(argv[1], std::ios::app);
     std::ifstream output("res.txt");
     int audio_diff, karuta_diff, score;

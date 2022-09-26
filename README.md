@@ -7,7 +7,7 @@
  - Compile: $ g++ yakinamashi.cpp -Ofast -fopenmp -lgomp
 
 ### yakinamashi_thread.cpp
- - マルチスレッドでの音声の解析をする(pthread使います)
+ - マルチスレッドでの音声の解析をする
  - Compile: $ g++ yakinamashi_thread.cpp -Ofast -fopenmp -lgomp
 
 ### generator.cpp
@@ -18,9 +18,9 @@
 ### run.cpp
  - testディレクトリにあるinformation.txtとproblem.wavを使って問題を解く
  - Compile: $ g++ run.cpp -O2 -o run
- - Run: $ ./run
+ - Run: $ ./run ([seed値(デフォルトはtime(NULL))])
 
 ### train.cpp
  - run.cppを複数回動かしてテストする
  - Compile: $ g++ train.cpp -O2 -o train
- - Run: $ ./train [書き込むファイルのパス] [テスト回数]
+ - Run: $ ./train [書き込むファイルのパス] [テスト回数] ([seed値(デフォルトは0)])
