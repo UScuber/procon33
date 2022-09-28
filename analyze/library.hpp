@@ -7,19 +7,14 @@
 #include <cstring>
 #include <chrono>
 #include <omp.h>
+#include "audio_array.hpp"
 #include "Math.hpp"
 #include "hash.hpp"
 #include "select_num.hpp"
 #pragma GCC target("avx2")
 #pragma GCC optimize("unroll-loops")
-#include "audio_array.hpp"
 #define rep(i, n) for(int i = 0; i < (n); i++)
 using uint = unsigned int;
-using std::vector;
-#define min(a, b) ((a) < (b) ? (a) : (b))
-#define max(a, b) ((a) > (b) ? (a) : (b))
-using std::cout; using std::cin;
-using std::cerr;
 
 constexpr int inf = (uint)-1 >> 1;
 
@@ -64,10 +59,7 @@ inline constexpr Val_Type Weight(const Val_Type x) noexcept{
   return x < 0 ? -x : x;
 }
 
-// check is crossed [a, b), [c, d)
-#define is_cross(a,b,c,d) (max(a, c) < min(b, d))
 
-// 問題の数列から数字を引いたやつのスコアを計算する
 constexpr Score_Type calc_score(const Val_Type a[ans_length]) noexcept{
   Score_Type score = 0;
   rep(i, problem_length) score += Weight(a[i]);
@@ -120,19 +112,19 @@ void read_values(){
     }
     Solver::init_values(pre_values, contain);
   }else{
-    cerr << "wrong format!!!\n";
+    std::cerr << "wrong format!!!\n";
     assert(0);
   }
 }
 
 void output_result(const Data best[m], const Score_Type final_score){
-  cout << "Output\n";
-  rep(i, m) cout << best[i].idx << " \n"[i == m - 1];
-  cout << final_score << "\n";
-  cout << "\n";
-  cout << contains_num << "\n";
+  std::cout << "Output\n";
+  rep(i, m) std::cout << best[i].idx << " \n"[i == m - 1];
+  std::cout << final_score << "\n";
+  std::cout << "\n";
+  std::cout << contains_num << "\n";
   rep(i, m){
-    cout << best[i].idx << " " << best[i].pos << " " << best[i].st << " " << best[i].len << "\n";
+    std::cout << best[i].idx << " " << best[i].pos << " " << best[i].st << " " << best[i].len << "\n";
   }
 }
 
@@ -143,8 +135,8 @@ namespace Calc {
 using namespace HashImpl;
 
 [[nodiscard]]
-vector<int> find_single_audio(const Wave &problem_data, const vector<Wave> &audio_waves){
-  cerr << "start find single audio(JP)\n";
+std::vector<int> find_single_audio(const Wave &problem_data, const std::vector<Wave> &audio_waves){
+  std::cerr << "start find single audio(JP)\n";
   static constexpr int range = 1 << 10;
   RollingHash<range> roliha;
   const Hash<range> problem_hash = roliha.gen(problem_data.data);
@@ -152,7 +144,7 @@ vector<int> find_single_audio(const Wave &problem_data, const vector<Wave> &audi
   rep(i, problem_data.L - range){
     problem_sampling.set(problem_hash.query(i, i+range));
   }
-  vector<int> result;
+  std::vector<int> result;
   for(int i = 0; i < half_n; i++){
     const Hash<range> wave_data_hash = roliha.gen(audio_waves[i].data);
     bool ok = false;
@@ -165,7 +157,7 @@ vector<int> find_single_audio(const Wave &problem_data, const vector<Wave> &audi
     }
     if(ok) result.push_back(i);
   }
-  cerr << "start find single audio(EN)\n";
+  std::cerr << "start find single audio(EN)\n";
   for(int i = half_n; i < n; i++){
     const Hash<range> wave_data_hash = roliha.gen(audio_waves[i].data);
     bool ok = false;
@@ -182,32 +174,32 @@ vector<int> find_single_audio(const Wave &problem_data, const vector<Wave> &audi
 }
 
 [[nodiscard]]
-vector<int> find_double_audio(const Wave &problem_data, const vector<Wave> &audio_waves){
-  cerr << "start find double audio\n";
+std::vector<int> find_double_audio(const Wave &problem_data, const std::vector<Wave> &audio_waves){
+  std::cerr << "start find double audio\n";
   static constexpr int range = 1 << 10;
   RollingHash<range> roliha;
   const Hash<range> problem_hash = roliha.gen(problem_data.data);
-  cerr << "base: " << roliha.base << "\n";
-  vector<Hash<range>> audio_hash;
+  std::cerr << "base: " << roliha.base << "\n";
+  std::vector<Hash<range>> audio_hash;
   HashMap<ull, char, 28> audio_map;
   rep(i, n){
-    cerr << i << " ";
+    std::cerr << i << " ";
     audio_hash.emplace_back(roliha.gen(audio_waves[i].data));
     rep(j, audio_waves[i].L - range){
       audio_map.set(audio_hash[i].query(j), (char)i);
     }
   }
-  cerr << "\n";
+  std::cerr << "\n";
   static constexpr int rng = 1 << 12;
   ull *problem_hash_array = new ull[(problem_data.L-range) / rng];
   rep(i, (problem_data.L - range) / rng){
     assert(i * rng + range < problem_data.L);
     problem_hash_array[i] = problem_hash.query(i*rng);
   }
-  vector<int> result;
+  std::vector<int> result;
   rep(i, n){
-    cerr << i << " ";
-    vector<vector<int>> res(audio_waves[i].L - range);
+    std::cerr << i << " ";
+    std::vector<std::vector<int>> res(audio_waves[i].L - range);
     #pragma omp parallel for
     rep(j, audio_waves[i].L - range){
       const ull cur_audio_hash = roliha.mod - audio_hash[i].query(j);
@@ -216,7 +208,7 @@ vector<int> find_double_audio(const Wave &problem_data, const vector<Wave> &audi
         const ull hash = problem_hash_array[k] + cur_audio_hash;
         if(audio_map.find(hash)){
           res[j].push_back((int)audio_map.get(hash));
-          cerr << "Find!! ";
+          std::cerr << "Find!! ";
         }
       }
     }
@@ -226,16 +218,16 @@ vector<int> find_double_audio(const Wave &problem_data, const vector<Wave> &audi
     }
   }
   delete[] problem_hash_array;
-  cerr << "\n";
+  std::cerr << "\n";
   return result;
 }
 
 [[nodiscard]]
-vector<int> find_audio(){
-  cerr << "reading wave data...\n";
+std::vector<int> find_audio(){
+  std::cerr << "reading wave data...\n";
   Wave problem_wave;
   read_audio(problem_wave, "test/problem.wav");
-  vector<Wave> audio_waves(n);
+  std::vector<Wave> audio_waves(n);
   char buf[64];
   rep(i, half_n){
     sprintf(buf, "audio/JKspeech/J%02d.wav", i+1);
@@ -245,9 +237,9 @@ vector<int> find_audio(){
     sprintf(buf, "audio/JKspeech/E%02d.wav", i-44+1);
     read_audio(audio_waves[i], buf);
   }
-  const vector<int> single_audio = find_single_audio(problem_wave, audio_waves);
-  const vector<int> double_audio = find_double_audio(problem_wave, audio_waves);
-  vector<int> result = single_audio;
+  const std::vector<int> single_audio = find_single_audio(problem_wave, audio_waves);
+  const std::vector<int> double_audio = find_double_audio(problem_wave, audio_waves);
+  std::vector<int> result = single_audio;
   result.insert(result.end(), double_audio.begin(), double_audio.end());
   std::sort(result.begin(), result.end());
   result.erase(std::unique(result.begin(), result.end()), result.end());
@@ -276,11 +268,11 @@ Score_Type best_score = inf_score;
 void init(){
   memcpy(best_sub, problem, sizeof(problem));
   problem_wave_score = calc_score(best_sub);
-  const vector<int> surely_contain = Calc::find_audio();
+  const std::vector<int> surely_contain = Calc::find_audio();
   contains_num = (int)surely_contain.size();
-  cerr << "Surely Contains Num: " << contains_num << "\n";
-  for(const int x : surely_contain) cerr << x << " ";
-  cerr << "\n";
+  std::cerr << "Surely Contains Num: " << contains_num << "\n";
+  for(const int x : surely_contain) std::cerr << x << " ";
+  std::cerr << "\n";
   rep(i, contains_num){
     best[i].idx = surely_contain[i];
     best[i].pos = 0;
@@ -307,8 +299,8 @@ void init(){
   }
   best_score = calc_score(best_sub);
 
-  cerr << "Problem Wave: " << problem_wave_score << "\n";
-  cerr << "First Score: " << best_score << "\n";
+  std::cerr << "Problem Wave: " << problem_wave_score << "\n";
+  std::cerr << "First Score: " << best_score << "\n";
 }
 void init_values(const Data pre_result[m], const int contain){
   memcpy(best_sub, problem, sizeof(problem));
@@ -323,8 +315,8 @@ void init_values(const Data pre_result[m], const int contain){
   }
   best_score = calc_score(best_sub);
 
-  cerr << "Problem Wave: " << problem_wave_score << "\n";
-  cerr << "First Score: " << best_score << "\n";
+  std::cerr << "Problem Wave: " << problem_wave_score << "\n";
+  std::cerr << "First Score: " << best_score << "\n";
 }
 
 // import to best from data
