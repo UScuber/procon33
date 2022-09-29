@@ -146,10 +146,15 @@ def problem_post():
                                     json=json.load(submit_json),
                                     headers={'Content-Type': 'application/json'},
                                     verify=False)
+    alert(res_problem)
     make_json("response.json", res_problem.text)
 
 
 if __name__ == "__main__":
+    """引数の数に過不足があったら終了させる"""
+    if len(sys.argv) != 2:
+        sys.exit()
+        
     """最終的に音声ファイルをダウンロードして結合"""
     if (sys.argv[1] == "download" or sys.argv[1] == "Download" or sys.argv[1] == "DOWNLOAD"):
         match_get()
