@@ -55,9 +55,8 @@ void output_result(ifstream &result, bool is_eof, bool is_out){
     if(is_out){
       for(int i = 0; i < speech_num; i++){
         int a; result >> a;
-        cout << a << " ";
+        cout << a << " \n"[i == speech_num - 1];
       }
-      cout << "\n";
     }
   }
 }
