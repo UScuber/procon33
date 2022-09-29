@@ -111,7 +111,7 @@ def read_res():
         res = txt.read()
         res_ls = (res.replace("\n", "")).split(" ")
     # 読み込んだリストを整数型にすると同時に提出用に数字を編集する
-    for i in len(res_ls):
+    for i in range(len(res_ls)):
         res_ls[i] = (int(res_ls[i])) % 44 + 1
     # res.txtから読み込んだリストを回答形式に合うように変更してリストにす る
     res_ls.sort()
