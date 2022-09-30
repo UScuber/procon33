@@ -6,3 +6,4 @@ analyze/test
 *.out
 !/analyze/sampleProblems/*/*.txt
 net/*.json
+net/__pycache__
