@@ -5,3 +5,4 @@ analyze/test
 *.exe
 *.out
 !/analyze/sampleProblems/*/*.txt
+net/*.json
