@@ -114,7 +114,7 @@ void solve(){
       memcpy(awesome, best, sizeof(awesome));
       std::cerr << "u";
       update_num++;
-      if(p >= 0.5) rep(i, m) best_cnt[best[i].idx]++;
+      rep(i, m) best_cnt[best[i].idx]++;
       last_upd_time = spend_time;
     }else if(fast_exp((double)(best_score - good_score) / temp) > rnd(1024)/1024.0){
       best_score = good_score;
@@ -130,42 +130,11 @@ void solve(){
   std::cerr << "Last Update: " << last_upd_time << "\n";
   std::cerr << "Time per loop: " << (spend_time-temp_time)/cnt << "\n";
   std::cerr << "Final Score: " << best_score << "\n";
-  rep(i, half_n) std::cerr << best_cnt[i] << " ";
-  std::cerr << "\n";
-  rep(i, half_n) std::cerr << best_cnt[i + half_n] << " ";
-  std::cerr << "\n";
-  std::vector<std::pair<int,int>> v(n);
-  rep(i, n) v[i] = { best_cnt[i], i };
-  std::sort(v.rbegin(), v.rend());
-  int top[n] = {};
-  rep(i, m) top[v[i].second] = 1;
-  rep(i, half_n){
-    if(top[i]) std::cerr << "\x1b[1m";
-    rep(j, m) if(best[j].idx == i){
-      std::cerr << "\x1b[42m";
-      break;
-    }
-    std::cerr << best_cnt[i];
-    std::cerr << "(J" << i+1 << ")";
-    std::cerr << "\x1b[49m"; // background color
-    std::cerr << "\x1b[39m"; // font color
-    std::cerr << "\x1b[0m"; // under bar
-    std::cerr << " ";
-  }
-  std::cerr << "\n";
-  rep(i, half_n){
-    if(top[i+half_n]) std::cerr << "\x1b[1m";
-    rep(j, m) if(best[j].idx == i+half_n){
-      std::cerr << "\x1b[42m";
-      break;
-    }
-    std::cerr << best_cnt[i + half_n];
-    std::cerr << "(E" << i+1 << ")";
-    std::cerr << "\x1b[49m"; // background color
-    std::cerr << "\x1b[39m"; // font color
-    std::cerr << "\x1b[0m"; // under bar
-    std::cerr << " ";
-  }
+  
+  std::sort(best, best + m, [&](const Data &a, const Data &b){
+    return best_cnt[a.idx] > best_cnt[b.idx];
+  });
+  
   File::output_result(best, awesome_score);
 }
 
