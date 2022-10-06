@@ -1,4 +1,4 @@
 cd analyze
-g++ run.cpp-02 -o run.exe
+g++ run.cpp -O2 -o run.exe
 cd ..
-g++ operator.cpp -02 -o operator.exe
+g++ operator.cpp -O2 -o operator.exe
