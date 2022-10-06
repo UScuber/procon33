@@ -1,7 +1,7 @@
 #define USE_MULTI_THREAD
 #include "library.hpp"
 
-constexpr double limit_time = 60.0/17*(m-3) + 15;
+constexpr double limit_time = (60.0/17*(m-3) + 15) * 0.5;
 
 namespace Solver {
 
@@ -31,7 +31,6 @@ void solve(){
   double spend_time = 0, p = 0;
   int cnt = 0;
   double temp_time = -1;
-  int best_cnt[n] = {};
   if(contains_num == m) goto END;
   // 焼きなまし法(single thread)
   std::cerr << "Start Single Thread\n";
@@ -114,7 +113,6 @@ void solve(){
       memcpy(awesome, best, sizeof(awesome));
       std::cerr << "u";
       update_num++;
-      rep(i, m) best_cnt[best[i].idx]++;
       last_upd_time = spend_time;
     }else if(fast_exp((double)(best_score - good_score) / temp) > rnd(1024)/1024.0){
       best_score = good_score;
@@ -130,10 +128,6 @@ void solve(){
   std::cerr << "Last Update: " << last_upd_time << "\n";
   std::cerr << "Time per loop: " << (spend_time-temp_time)/cnt << "\n";
   std::cerr << "Final Score: " << best_score << "\n";
-  
-  std::sort(best, best + m, [&](const Data &a, const Data &b){
-    return best_cnt[a.idx] > best_cnt[b.idx];
-  });
   
   File::output_result(best, awesome_score);
 }

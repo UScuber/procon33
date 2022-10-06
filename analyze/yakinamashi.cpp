@@ -1,6 +1,6 @@
 #include "library.hpp"
 
-constexpr double limit_time = 180.0/17*(m-3) + 45;
+constexpr double limit_time = (180.0/17*(m-3) + 45) * 0.3;
 
 
 namespace Solver {
@@ -22,7 +22,6 @@ void solve(){
   double temp = t0;
   double spend_time = 0, p = 0;
   StopWatch sw;
-  int best_cnt[n] = {};
   if(contains_num == m) goto END;
   // 焼きなまし法
   for(; ; steps++){
@@ -44,7 +43,6 @@ void solve(){
       memcpy(awesome, best, sizeof(awesome));
       std::cerr << "u";
       update_num++;
-      rep(i, m) best_cnt[best[i].idx]++;
       last_upd_time = spend_time;
     }else if(fast_exp((double)(best_score - score) / temp) > rnd(1024)/1024.0){
       best_score = score;
@@ -59,10 +57,6 @@ void solve(){
   std::cerr << "Time per loop: " << spend_time/steps << "\n";
   std::cerr << "Final Score: " << awesome_score << "\n";
   
-  std::sort(best, best + m, [&](const Data &a, const Data &b){
-    return best_cnt[a.idx] > best_cnt[b.idx];
-  });
-
   File::output_result(best, awesome_score);
 }
 

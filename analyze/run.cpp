@@ -29,7 +29,6 @@ void output_result(ifstream &result, bool is_eof, bool is_out){
     for(int i = 0; i < speech_num; i++) result >> res[i];
     int audio_diff_num = 0;
     int karuta_diff_num = 0;
-    int correct_num = -1;
     for(int i = 0; i < speech_num; i++){
       bool ok = false, ok2 = false;
       for(int j = 0; j < speech_num; j++){
@@ -40,16 +39,11 @@ void output_result(ifstream &result, bool is_eof, bool is_out){
           ok2 = true;
         }
       }
-      if(!ok){
-        audio_diff_num++;
-        if(correct_num == -1) correct_num = i;
-      }
+      if(!ok) audio_diff_num++;
       if(!ok2) karuta_diff_num++;
     }
-    if(correct_num == -1) correct_num = speech_num;
     cerr << "\nAudio Diff: " << audio_diff_num << "/" << speech_num << "\n";
     cerr << "Karuta Diff: " << karuta_diff_num << "/" << speech_num << "\n";
-    cerr << "Correct Num: " << correct_num << "\n";
     int score; result >> score;
     if(is_out){
       cout << audio_diff_num << " " << karuta_diff_num << "\n";
