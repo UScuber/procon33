@@ -61,6 +61,8 @@ def problem_get():
     make_json("problem.json", res_problem.text)
     # 受けとったjsonを辞書型に変換
     problem_dic = json.loads(res_problem.text)
+    # Todo
+    # - 標準出力で取得した問題の制限時間を出力する
     # 札数を../analyze/testのinformation.txtに書き込む
     with open("../analyze/test/information.txt", "w") as txt:
         print(problem_dic["data"], file=txt)
