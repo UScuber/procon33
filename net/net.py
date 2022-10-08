@@ -61,14 +61,14 @@ def problem_get():
     make_json("problem.json", res_problem.text)
     # 受けとったjsonを辞書型に変換
     problem_dic = json.loads(res_problem.text)
-    # Todo
-    # - 標準出力で取得した問題の制限時間を出力する
     # 札数を../analyze/testのinformation.txtに書き込む
     with open("../analyze/test/information.txt", "w") as txt:
         print(problem_dic["data"], file=txt)
     # 問題IDをproblem.txtに書き込む
     with open("problem.txt", "w") as txt:
         print(problem_dic["id"], file=txt)
+    # 標準出力で取得した問題の制限時間を出力する
+    print("制限時間は" + str(problem_dic["time_limit"]) + "秒")
     # 変換したjsonから選択数を抽出する
     return problem_dic
 
