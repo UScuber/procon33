@@ -44,7 +44,8 @@ void solve(){
       //temp = (t1 - t0) * p + t0;
     }
     RndInfo change;
-    rnd_create(change);
+    if(p < 0.5*0.1) rnd_create_first(change);
+    else rnd_create_second(change);
     const Score_Type score = calc_one_changed_ans2(change);
     if(awesome_score > score){
       awesome_score = score;
@@ -90,7 +91,9 @@ void solve(){
 
     const int calc_num = thread_num * tasks_num;
     if(spend_time - last_upd_time <= 3.0 || !rnd(8)){
-      rep(i, calc_num) rnd_create(rnd_arrays[i]);
+      if(p < 0.5) rep(i, calc_num) rnd_create_first(rnd_arrays[i]);
+      else rep(i, calc_num) rnd_create_second(rnd_arrays[i]);
+      //rep(i, calc_num) rnd_create(rnd_arrays[i]);
     }else{
       rep(i, calc_num) rnd_create2(rnd_arrays[i]);
     }
