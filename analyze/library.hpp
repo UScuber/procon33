@@ -256,6 +256,7 @@ struct RndInfo {
   int nxt_idx; //新しく更新する札
   int st; //次の札の再生開始位置
   int len; //次の札の再生の長さ
+  int t;
 };
 
 Data best[m];
@@ -333,9 +334,10 @@ void init_array(const Data data[]) noexcept{
 }
 
 
-inline void rnd_create(RndInfo &change, const int rng = hz) noexcept{
-  //constexpr int rng = hz;
-  const int t = rnd(10);
+inline void rnd_create(RndInfo &change) noexcept{
+  static constexpr int rng = hz;
+  const int t = rnd(9);
+  change.t = t;
   // select wav and change pos
   if(t == 0){
     change.idx = rnd(m);
@@ -345,7 +347,7 @@ inline void rnd_create(RndInfo &change, const int rng = hz) noexcept{
     change.pos = rnd(problem_length - change.len + 1);
   }
   // select other wav and swap and change pos
-  else if(t == 1 || t == 6){
+  else if(t == 8){
     change.idx = rnd(contains_num, m);
     change.nxt_idx = rnd(n);
     while((used_idx >> (change.nxt_idx % half_n) & 1) && best[change.idx].idx % half_n != change.nxt_idx % half_n){
@@ -356,7 +358,7 @@ inline void rnd_create(RndInfo &change, const int rng = hz) noexcept{
     change.pos = rnd(problem_length - change.len + 1);
   }
   // change len
-  else if(t == 2){
+  else if(t == 1){
     change.idx = rnd(m);
     change.nxt_idx = best[change.idx].idx;
     change.st = best[change.idx].st;
@@ -365,7 +367,7 @@ inline void rnd_create(RndInfo &change, const int rng = hz) noexcept{
     change.len = rnd(max(hz, best[change.idx].len-rng), min(min(problem_length-change.pos, audio_length[change.nxt_idx]-change.st), best[change.idx].len+rng) + 1);
   }
   // change pos
-  else if(t == 3){
+  else if(t == 2){
     change.idx = rnd(m);
     change.nxt_idx = best[change.idx].idx;
     change.st = best[change.idx].st;
@@ -374,7 +376,7 @@ inline void rnd_create(RndInfo &change, const int rng = hz) noexcept{
     change.pos = rnd(max(0, best[change.idx].pos-rng), min(problem_length-change.len, best[change.idx].pos+rng) + 1);
   }
   // change st
-  else if(t == 4){
+  else if(t == 3){
     change.idx = rnd(m);
     change.nxt_idx = best[change.idx].idx;
     change.len = best[change.idx].len;
@@ -383,7 +385,7 @@ inline void rnd_create(RndInfo &change, const int rng = hz) noexcept{
     change.st = rnd(max(0, best[change.idx].st-rng), min(audio_length[change.nxt_idx]-change.len, best[change.idx].st+rng) + 1);
   }
   // change wav type
-  else if(t == 5 || t == 7){
+  else if(t == 4 || t == 5){
     change.idx = rnd(contains_num, m);
     change.nxt_idx = rnd(n);
     while((used_idx >> (change.nxt_idx % half_n) & 1) && best[change.idx].idx % half_n != change.nxt_idx % half_n){
@@ -394,7 +396,7 @@ inline void rnd_create(RndInfo &change, const int rng = hz) noexcept{
     change.pos = min(best[change.idx].pos, problem_length - change.len);
   }
   // change st,pos and len
-  else if(t == 8){
+  else if(t == 6){
     change.idx = rnd(m);
     change.nxt_idx = best[change.idx].idx;
     change.pos = rnd(best[change.idx].pos - min(rng, min(best[change.idx].pos, best[change.idx].st)), min(best[change.idx].pos+rng, best[change.idx].pos+best[change.idx].len-hz) + 1);
@@ -402,7 +404,7 @@ inline void rnd_create(RndInfo &change, const int rng = hz) noexcept{
     change.len = best[change.idx].len - (change.pos - best[change.idx].pos);
   }
   // copy other wav info
-  else if(t == 9){
+  else if(t == 7){
     change.idx = rnd(m);
     change.nxt_idx = best[change.idx].idx;
     int sel_idx = rnd(m);
@@ -502,6 +504,94 @@ inline Score_Type calc_one_changed_ans(const RndInfo &info) noexcept{
     }
     for(int i = 0; i < pre.len; i++){
       score += Weight(best_sub[i+pre.pos] + arr_pre[i]) - Weight(best_sub[i+pre.pos]);
+    }
+  }
+  return score;
+}
+// tによって処理を分ける
+inline Score_Type calc_one_changed_ans2(const RndInfo &info) noexcept{
+  const Data &pre = best[info.idx];
+  const int info_rig = info.pos + info.len;
+  const int pre_rig = pre.pos + pre.len;
+  const Val_Type *arr_info = arrays[info.nxt_idx] + info.st;
+  const Val_Type *arr_pre = arrays[pre.idx] + pre.st;
+  Score_Type score = best_score;
+  // change len
+  if(info.t == 1){
+    if(info.len > pre.len){
+      for(int i = pre_rig; i < info_rig; i++){
+        score += Weight(best_sub[i] - arr_info[i-pre.pos]) - Weight(best_sub[i]);
+      }
+    }
+    else{
+      for(int i = info_rig; i < pre_rig; i++){
+        score += Weight(best_sub[i] + arr_pre[i-info.pos]) - Weight(best_sub[i]);
+      }
+    }
+  }
+  // change st,pos and len
+  else if(info.t == 6){
+    if(info.st > pre.st){
+      for(int i = pre.pos; i < info.pos; i++){
+        score += Weight(best_sub[i] + arr_pre[i-pre.pos]) - Weight(best_sub[i]);
+      }
+    }
+    else{
+      for(int i = info.pos; i < pre.pos; i++){
+        score += Weight(best_sub[i] - arr_pre[i-pre.pos]) - Weight(best_sub[i]);
+      }
+    }
+  }
+  else{
+    // cross
+    if(is_cross(info.pos, info_rig, pre.pos, pre_rig)){
+      // 左側がleft
+      if(info.pos <= pre.pos){
+        const int rightest = min(info_rig, pre.pos);
+        for(int i = info.pos; i < rightest; i++){
+          score += Weight(best_sub[i] - arr_info[i-info.pos]) - Weight(best_sub[i]);
+        }
+      }
+      // 左側がright
+      else{
+        const int rightest = min(pre_rig, info.pos);
+        for(int i = pre.pos; i < rightest; i++){
+          score += Weight(best_sub[i] + arr_pre[i-pre.pos]) - Weight(best_sub[i]);
+        }
+      }
+      // 右側がright
+      if(info_rig <= pre_rig){
+        const int leftest = max(pre.pos, info_rig);
+        const int s = max(info_rig - pre.pos, 0) - leftest;
+        for(int i = leftest; i < pre_rig; i++){
+          score += Weight(best_sub[i] + arr_pre[i+s]) - Weight(best_sub[i]);
+        }
+      }
+      // 右側がleft
+      else{
+        const int leftest = max(info.pos, pre_rig);
+        const int s = max(pre_rig - info.pos, 0) - leftest;
+        for(int i = leftest; i < info_rig; i++){
+          score += Weight(best_sub[i] - arr_info[i+s]) - Weight(best_sub[i]);
+        }
+      }
+      // middle
+      const int leftest = max(info.pos, pre.pos);
+      const int rightest = min(info_rig, pre_rig);
+      const int sl = max(pre.pos - info.pos, 0) - leftest;
+      const int sr = max(info.pos - pre.pos, 0) - leftest;
+      for(int i = leftest; i < rightest; i++){
+        score += Weight(best_sub[i] - arr_info[i+sl] + arr_pre[i+sr]) - Weight(best_sub[i]);
+      }
+    }
+    // not cross
+    else{
+      for(int i = info.pos; i < info_rig; i++){
+        score += Weight(best_sub[i] - arr_info[i-info.pos]) - Weight(best_sub[i]);
+      }
+      for(int i = pre.pos; i < pre_rig; i++){
+        score += Weight(best_sub[i] + arr_pre[i-pre.pos]) - Weight(best_sub[i]);
+      }
     }
   }
   return score;
