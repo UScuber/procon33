@@ -1,7 +1,7 @@
 #define USE_MULTI_THREAD
 #include "library.hpp"
 
-constexpr double limit_time = (60.0/17*(m-3) + 15) * 0.5;
+constexpr double limit_time = (60.0/17*(m-3) + 15) * 1;
 
 namespace Solver {
 
@@ -45,7 +45,7 @@ void solve(){
     }
     RndInfo change;
     rnd_create(change);
-    const Score_Type score = calc_one_changed_ans(change);
+    const Score_Type score = calc_one_changed_ans2(change);
     if(awesome_score > score){
       awesome_score = score;
       best_score = score;
@@ -96,7 +96,7 @@ void solve(){
     }
     // multi thread
     #pragma omp parallel for
-    rep(i, calc_num) scores[i] = calc_one_changed_ans(rnd_arrays[i]);
+    rep(i, calc_num) scores[i] = calc_one_changed_ans2(rnd_arrays[i]);
     int best_change_idx = -1;
     Score_Type good_score = inf_score;
     rep(i, calc_num){

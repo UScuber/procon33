@@ -18,7 +18,6 @@ void solve(){
 
   constexpr double t0 = 2.5e3 * analyze_sampling_hz / 6000.0;
   double t1 = 1.0e2 * analyze_sampling_hz / 6000.0;
-  //t1 = (t1 - t0) * 2.3 / 3.0 + t0;
   double temp = t0;
   double spend_time = 0, p = 0;
   StopWatch sw;
@@ -42,12 +41,10 @@ void solve(){
       update_values(change);
       memcpy(awesome, best, sizeof(awesome));
       std::cerr << "u";
-      //std::cout << change.t << " ";
       update_num++;
       last_upd_time = spend_time;
     }else if(fast_exp((double)(best_score - score) / temp) > rnd(1024)/1024.0){
       best_score = score;
-      //std::cout << change.t << " ";
       update_values(change);
     }
   }
