@@ -1,11 +1,13 @@
 #pragma once
+#include <stdio.h>
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
 // check is crossed [a, b), [c, d)
 #define is_cross(a,b,c,d) (max(a, c) < min(b, d))
 
-namespace Math {
-constexpr double b1table[32] = {
+typedef unsigned long long ull;
+
+const double b1table[32] = {
   0x1.0000000000000p+0,
   0x1.059b0d3158574p+0,
   0x1.0b5586cf9890fp+0,
@@ -39,7 +41,7 @@ constexpr double b1table[32] = {
   0x1.ea4afa2a490dap+0,
   0x1.f50765b6e4540p+0,
 };
-constexpr double b2table[32] = {
+const double b2table[32] = {
   0x1.0000000000000p+0,
   0x1.002c605e2e8cfp+0,
   0x1.0058c86da1c0ap+0,
@@ -73,22 +75,20 @@ constexpr double b2table[32] = {
   0x1.0540727fc1762p+0,
   0x1.056dbbebb786bp+0,
 };
-constexpr inline uint64_t exp_table(const uint64_t s) noexcept{
+
+ull exp_table(const ull s){
   const double b = b1table[s>>5&31] * b2table[s&31];
-  return *(uint64_t*)&b + ((s >> 10) << 52);
+  return *(ull*)&b + ((s >> 10) << 52);
 }
-constexpr inline double fast_exp(const double x) noexcept{
+double fast_exp(const double x){
   if(x < -104.0f) return 0.0;
   if(x > 0x1.62e42ep+6f) return HUGE_VALF;
-  constexpr double R = 0x3.p+51f;
-  constexpr double iln2 = 0x1.71547652b82fep+10;
-  constexpr double ln2h = 0x1.62e42fefc0000p-11;
-  constexpr double ln2l = -0x1.c610ca86c3899p-47;
+  const double R = 0x3.p+51f;
+  const double iln2 = 0x1.71547652b82fep+10;
+  const double ln2h = 0x1.62e42fefc0000p-11;
+  const double ln2l = -0x1.c610ca86c3899p-47;
   const double k_R = x*iln2+R;
   const double t = x*iln2*(-ln2l+ln2h+x);
-  const uint64_t exp_s = exp_table(*(uint64_t*)&k_R);
+  const ull exp_s = exp_table(*(ull*)&k_R);
   return *(double*)&exp_s * ((1.0/6.0*t+1.0/2.0)*t*t+t+1);
 }
-} // namespace Math
-
-using Math::fast_exp;
