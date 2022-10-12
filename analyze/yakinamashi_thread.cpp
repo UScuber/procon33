@@ -44,7 +44,7 @@ void solve(){
       //temp = (t1 - t0) * p + t0;
     }
     RndInfo change;
-    if(p < 0.5*0.1) rnd_create_first(change);
+    if(1 || p < 0.5*0.1) rnd_create_first(change);
     else rnd_create_second(change);
     const Score_Type score = calc_one_changed_ans2(change);
     if(awesome_score > score){
