@@ -79,7 +79,7 @@ int main(){
   copy_file("out.txt", "in.txt");
   system("a.exe < in.txt > out.txt");
 #else
-  system("g++ yakinamashi.cpp -Ofast");
+  system("g++ yakinamashi.cpp -Ofast -fopenmp -lgomp");
   system("./a.out < in.txt > out.txt");
   ifstream pre_result("out.txt");
   output_result(pre_result, info.eof(), 0);
