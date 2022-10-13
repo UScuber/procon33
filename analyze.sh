@@ -1,5 +1,4 @@
 #! /bin/sh
-
 cd analyze
-run.exe > res.txt
+./run > res.txt
 cd ..

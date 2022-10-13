@@ -1,3 +1,4 @@
+#! /bin/sh
 cd net
-python net.py submit
+python3 net.py submit
 cd ..

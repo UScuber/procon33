@@ -1,3 +1,4 @@
+#! /bin/sh
 cd net
-python net.py download
+python3 net.py download
 cd ..
