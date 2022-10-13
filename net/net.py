@@ -29,6 +29,9 @@ def alert(j):
     if j is None:
         print("None!!")
         sys.exit()
+    elif (j.text[0:6] == "<html>"):
+        print("it is html!!")
+        sys.exit()
     for i in range(len(err)):
         if err[i] in j.text:
             print(j.text)
@@ -50,6 +53,7 @@ def make_json(file_name, text):
 def match_get():
     res_match = requests.get(URL + "/match" + query, verify=False)
     alert(res_match)
+    print(res_match.text)
     make_json("match.json", res_match.text)
     return res_match.text
 

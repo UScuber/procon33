@@ -15,13 +15,25 @@ int main(){
         std::cin >> n;
         switch (n){
             case DOWNLOAD:
-                system("download.cmd");
-                break;
+                #if defined(_WIN32) || defined(_WIN64)
+                    system("download.cmd");
+                #else
+                    system("download.sh");
+                #endif
+            break;
             case ANALYZE:
-                system("analyze.cmd");
+                #if defined(_WIN32) || defined(_WIN64)
+                    system("analyze.cmd");
+                #else
+                    system("analyze.sh");
+                #endif
                 break;
             case SUBMIT:
-                system("submit.cmd");
+                #if defined(_WIN32) || defined(_WIN64)
+                    system("submti.cmd");
+                #else
+                    system("submit.sh");
+                #endif
                 break;
             case EXIT:
                 return 0;
