@@ -30,7 +30,7 @@ int main(){
                 break;
             case SUBMIT:
                 #if defined(_WIN32) || defined(_WIN64)
-                    system("submti.cmd");
+                    system("submit.cmd");
                 #else
                     system("./submit.sh");
                 #endif
