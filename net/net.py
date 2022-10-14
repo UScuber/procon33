@@ -73,6 +73,8 @@ def problem_get():
         print(problem_dic["id"], file=txt)
     # 標準出力で取得した問題の制限時間を出力する
     print("制限時間は" + str(problem_dic["time_limit"]) + "秒")
+    # 問題IDをコンソール出力
+    print("問題IDは" + problem_dic["id"] + "です")
     # 変換したjsonから選択数を抽出する
     return problem_dic
 
