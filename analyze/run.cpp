@@ -79,12 +79,12 @@ int main(){
   copy_file("out.txt", "in.txt");
   system("a.exe < in.txt > out.txt");
 #else
-  system("g++ yakinamashi.cpp -Ofast -fopenmp -lgomp");
+  system("g++ yakinamashi.cpp -Ofast -fopenmp -lgomp -unroll=4");
   system("./a.out < in.txt > out.txt");
   ifstream pre_result("out.txt");
   output_result(pre_result, info.eof(), 0);
   pre_result.close();
-  system("g++ yakinamashi_thread.cpp -Ofast -fopenmp -lgomp");
+  system("g++ yakinamashi_thread.cpp -Ofast -fopenmp -lgomp -unroll=8");
   copy_file("out.txt", "in.txt");
   system("./a.out < in.txt > out.txt");
 #endif
