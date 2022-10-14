@@ -9,6 +9,7 @@ def wav_cat():
 
     # audioディレクトリに入っているwavファイル名(パス)をリスト形式で取得
     file_names = glob.glob("audio/*.wav")
+    file_names.sort()
 
     sound = []
 
