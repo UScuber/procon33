@@ -6,7 +6,8 @@
 #include <time.h>
 #include <cstring>
 #include <chrono>
-#include <omp.h>
+#include <thread>
+#include <future>
 #include "audio_array.hpp"
 #include "Math.hpp"
 #include "hash.hpp"
@@ -200,7 +201,29 @@ std::vector<int> find_double_audio(const Wave &problem_data, const std::vector<W
   rep(i, n){
     std::cerr << i << " ";
     std::vector<std::vector<int>> res(audio_waves[i].L - range);
-    #pragma omp parallel for
+    //#pragma omp parallel for
+    const int length = audio_waves[i].L - range;
+    constexpr int thread_num = 16;
+    std::thread threads[thread_num - 1];
+    auto calc_one_thread = [&](const int l, const int r) -> void {
+      for(int j = l; j < r; j++){
+        const ull cur_audio_hash = roliha.mod - audio_hash[i].query(j);
+        // rng飛ばしで探索
+        rep(k, (problem_data.L - range) / rng){
+          const ull hash = problem_hash_array[k] + cur_audio_hash;
+          if(audio_map.find(hash)){
+            res[j].push_back((int)audio_map.get(hash));
+            std::cerr << "Find!! ";
+          }
+        }
+      }
+    };
+    rep(j, thread_num-1){
+      threads[j] = std::thread(calc_one_thread, length/thread_num*j, length/thread_num*(j+1));
+    }
+    calc_one_thread(length/thread_num*(thread_num-1), length);
+    rep(j, thread_num-1) threads[j].join();
+    /*
     rep(j, audio_waves[i].L - range){
       const ull cur_audio_hash = roliha.mod - audio_hash[i].query(j);
       // rng飛ばしで探索
@@ -212,6 +235,7 @@ std::vector<int> find_double_audio(const Wave &problem_data, const std::vector<W
         }
       }
     }
+    */
     rep(j, audio_waves[i].L - range) if(!res[j].empty()){
       result.push_back(i);
       for(const int x : res[j]) result.push_back(x);

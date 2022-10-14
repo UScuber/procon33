@@ -16,6 +16,20 @@ Score_Type awesome_score = inf_score;
 
 Score_Type scores[thread_num * max_tasks_num];
 
+
+inline std::pair<Score_Type, int> calc_one_thread(const RndInfo rnds[]) noexcept{
+  Score_Type best_score = inf_score;
+  int best_idx = -1;
+  rep(i, tasks_num){
+    const Score_Type score = calc_one_changed_ans2(rnds[i]);
+    if(best_score > score){
+      best_score = score;
+      best_idx = i;
+    }
+  }
+  return { best_score, best_idx };
+}
+
 void solve(){
   awesome_score = best_score;
   memcpy(awesome, best, sizeof(best));
@@ -98,6 +112,7 @@ void solve(){
       rep(i, calc_num) rnd_create2(rnd_arrays[i]);
     }
     // multi thread
+    /*
     #pragma omp parallel for
     rep(i, calc_num) scores[i] = calc_one_changed_ans2(rnd_arrays[i]);
     int best_change_idx = -1;
@@ -106,6 +121,21 @@ void solve(){
       if(good_score > scores[i]){
         good_score = scores[i];
         best_change_idx = i;
+      }
+    }
+    */
+    std::future<std::pair<Score_Type,int>> threads[thread_num];
+    rep(i, thread_num){
+      threads[i] = std::async(calc_one_thread, rnd_arrays + i*tasks_num);
+    }
+    int best_change_idx = -1;
+    Score_Type good_score = inf_score;
+    rep(i, thread_num){
+      Score_Type score; int idx;
+      std::tie(score, idx) = threads[i].get();
+      if(good_score > score){
+        good_score = score;
+        best_change_idx = i*tasks_num + idx;
       }
     }
     const RndInfo &best_change = rnd_arrays[best_change_idx];
