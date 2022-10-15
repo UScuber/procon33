@@ -77,6 +77,7 @@ int main(){
   pre_result.close();
   system("g++ yakinamashi_thread.cpp -Ofast -fopenmp -lgomp -unroll=8");
   copy_file("out.txt", "in.txt");
+  copy_file("out.txt", "tmp.txt");
   system("a.exe < in.txt > out.txt");
 #else
   system("g++ yakinamashi.cpp -Ofast -fopenmp -lgomp -unroll=4");
@@ -86,6 +87,7 @@ int main(){
   pre_result.close();
   system("g++ yakinamashi_thread.cpp -Ofast -fopenmp -lgomp -unroll=8");
   copy_file("out.txt", "in.txt");
+  copy_file("out.txt", "tmp.txt");
   system("./a.out < in.txt > out.txt");
 #endif
   ifstream result("out.txt");
