@@ -334,12 +334,10 @@ void init_array(const Data data[]) noexcept{
 }
 
 
-// todo
-// 長さの最小値をmin(hz, problem_length)から0に近い値に変更する
-
 inline void rnd_create_first(RndInfo &change) noexcept{
   static constexpr int rng = hz*3/8;
-  static int minlen = min(hz, problem_length) / 500;
+  //static int minlen = min(hz, problem_length) / 500;
+  static constexpr int minlen = 1;
   const int t = rnd(10);
   change.t = t;
   // select wav and change pos
@@ -424,7 +422,8 @@ inline void rnd_create_first(RndInfo &change) noexcept{
 }
 inline void rnd_create_second(RndInfo &change) noexcept{
   static constexpr int rng = hz*3/8;
-  static int minlen = min(hz, problem_length) / 500;
+  //static int minlen = min(hz, problem_length) / 500;
+  static constexpr int minlen = 1;
   const int t = rnd(6);
   change.t = t;
   // select other wav and swap and change pos
@@ -478,7 +477,8 @@ inline void rnd_create_second(RndInfo &change) noexcept{
   }
 }
 inline void rnd_create2(RndInfo &change) noexcept{
-  static int minlen = min(hz, problem_length) / 500;
+  //static int minlen = min(hz, problem_length) / 500;
+  static constexpr int minlen = 1;
   const int t = rnd(5);
   change.t = -1;
   // select wav and change pos
