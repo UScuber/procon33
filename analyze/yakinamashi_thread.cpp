@@ -1,7 +1,7 @@
 #define USE_MULTI_THREAD
 #include "library.hpp"
 
-constexpr double limit_time = (60.0/17*(m-3) + 15) * 1;
+constexpr double limit_time = 32.5;
 
 namespace Solver {
 

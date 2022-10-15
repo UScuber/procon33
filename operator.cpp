@@ -41,6 +41,7 @@ int main(){
                 #else
                     system("bash transform.sh");
                 #endif
+                break;
             case EXIT:
                 return 0;
         }
