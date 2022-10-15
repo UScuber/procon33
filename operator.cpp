@@ -3,7 +3,7 @@
 #include <fstream>
 #include <filesystem>
 
-enum{EXIT, DOWNLOAD, ANALYZE, SUBMIT};
+enum{EXIT, DOWNLOAD, ANALYZE, SUBMIT, CHANGE};
 
 
 
@@ -11,7 +11,7 @@ int main(){
     int n;
     
     while(true){
-        puts("DOWNLOAD(1) ANALYZE(2) SUBMIT(3) EXIT(0)");
+        puts("DOWNLOAD(1) ANALYZE(2) SUBMIT(3) CHANGE TEMP(4) EXIT(0)");
         std::cin >> n;
         switch (n){
             case DOWNLOAD:
@@ -33,6 +33,13 @@ int main(){
                     system("submit.cmd");
                 #else
                     system("bash submit.sh");
+                #endif
+                break;
+            case CHANGE:
+                #if defined(_WIN32) || defined(_WIN64)
+                    system("change_temp.exe");
+                #else
+                    system("./change_temp");
                 #endif
                 break;
             case EXIT:
