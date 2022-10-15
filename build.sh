@@ -3,4 +3,4 @@ cd analyze
 g++ run.cpp -O2 -o run
 cd ..
 g++ operator.cpp -O2 -o operator
-g++ change_temp.cpp -o change_temp.exe
+g++ change_temp.cpp -o change_temp
