@@ -12,7 +12,8 @@
 #include "Math.hpp"
 #include "hash.hpp"
 #include "select_num.hpp"
-#pragma GCC target("avx2")
+#include <arm_neon.h>
+//#pragma GCC target("avx2")
 #pragma GCC optimize("unroll-loops")
 #define rep(i, n) for(int i = 0; i < (n); i++)
 using uint = unsigned int;
