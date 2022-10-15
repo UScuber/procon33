@@ -1,4 +1,5 @@
 #include "library.hpp"
+#include "temp.hpp"
 
 constexpr double limit_time = 97.5;
 
@@ -16,8 +17,6 @@ void solve(){
   double last_upd_time = -1;
   int steps = 0;
 
-  constexpr double t0 = 2.5e3 * analyze_sampling_hz / 6000.0;
-  double t1 = 1.0e2 * analyze_sampling_hz / 6000.0;
   double temp = t0;
   double spend_time = 0, p = 0;
   StopWatch sw;

@@ -1,5 +1,6 @@
 #define USE_MULTI_THREAD
 #include "library.hpp"
+#include "temp_thread.hpp"
 
 constexpr double limit_time = 32.5;
 
@@ -24,8 +25,6 @@ void solve(){
   double last_upd_time = -1;
   int steps = 0;
 
-  constexpr double t0 = 2.5e3 * analyze_sampling_hz / 6000.0 * 0.9;
-  constexpr double t1 = 1.0e2 * analyze_sampling_hz / 6000.0 * 0.8;
   double temp = t0;
   StopWatch sw;
   double spend_time = 0, p = 0;
