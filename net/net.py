@@ -8,15 +8,14 @@ import os
 import urllib3
 from urllib3.exceptions import InsecureRequestWarning
 
-import cat
 urllib3.disable_warnings(InsecureRequestWarning)
 
 # 自作モジュール
 import cat
 
 
-#URL = "https://procon33-practice.kosen.work"
-URL = "http://172.28.1.1:80/test"
+URL = "https://procon33-practice.kosen.work"
+#URL = "http://172.28.1.1:80/test"
 TOKEN = "3fc3169361f5daa766a8a3e3f757aaa20de7d4c7dafa3816ee4f7de4b9c71730"
 query = "?token=" + TOKEN
 
@@ -76,6 +75,8 @@ def problem_get():
     print("制限時間は" + str(problem_dic["time_limit"]) + "秒")
     # 問題IDをコンソール出力
     print("問題IDは" + problem_dic["id"] + "です")
+    # 分割データ数を出力
+    print("分割データ数は" + str(problem_dic["chunks"]) + "です")
     # 変換したjsonから選択数を抽出する
     return problem_dic
 
@@ -168,7 +169,8 @@ if __name__ == "__main__":
     if (sys.argv[1] == "download" or sys.argv[1] == "Download" or sys.argv[1] == "DOWNLOAD"):
         match_get()
         problem_information = problem_get()
-        file_get(chunks_post(problem_information["chunks"]))
+        # 受け取る分割データ数を標準入力させる
+        file_get(chunks_post(int(input("受け取る分割データ数を入力"))))
         cat.wav_cat()
     """分析結果のjsonファイルを提出する"""
     if (sys.argv[1] == "submit" or sys.argv[1] == "Submit" or sys.argv[1] == "SUBMIT"):
