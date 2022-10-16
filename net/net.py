@@ -14,8 +14,8 @@ urllib3.disable_warnings(InsecureRequestWarning)
 import cat
 
 
-URL = "https://procon33-practice.kosen.work"
-#URL = "http://172.28.1.1:80"
+#URL = "https://procon33-practice.kosen.work"
+URL = "http://172.28.1.1:80"
 TOKEN = "3fc3169361f5daa766a8a3e3f757aaa20de7d4c7dafa3816ee4f7de4b9c71730"
 query = "?token=" + TOKEN
 
