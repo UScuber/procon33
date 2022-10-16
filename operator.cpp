@@ -3,22 +3,25 @@
 #include <fstream>
 #include <filesystem>
 
-enum{EXIT, DOWNLOAD, ANALYZE, SUBMIT, CHANGE};
+enum{EXIT, DOWNLOAD, ANALYZE, SUBMIT, CHANGE, SETSEP};
 
-
+int sep_num = 1;
 
 int main(){
     int n;
     
     while(true){
-        puts("DOWNLOAD(1) ANALYZE(2) SUBMIT(3) CHANGE TEMP(4) EXIT(0)");
+        puts("DOWNLOAD(1) ANALYZE(2) SUBMIT(3) CHANGE TEMP(4) SETSETP(5) EXIT(0)");
         std::cin >> n;
         switch (n){
             case DOWNLOAD:
+                char buf[64];
                 #if defined(_WIN32) || defined(_WIN64)
-                    system("download.cmd");
+                    sprintf(buf, "download.cmd %d", sep_num);
+                    system(buf);
                 #else
-                    system("bash download.sh");
+                    sprintf(buf, "bash download.sh %d", sep_num);
+                    system(buf);
                 #endif
             break;
             case ANALYZE:
@@ -41,6 +44,10 @@ int main(){
                 #else
                     system("./change_temp");
                 #endif
+                break;
+            case SETSEP:
+                printf("separate num: ");
+                std::cin >> sep_num;
                 break;
             case EXIT:
                 return 0;

@@ -1,3 +1,3 @@
 cd net
-python net.py download
+python net.py download %1
 cd ..

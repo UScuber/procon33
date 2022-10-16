@@ -14,8 +14,8 @@ urllib3.disable_warnings(InsecureRequestWarning)
 import cat
 
 
-#URL = "https://procon33-practice.kosen.work"
-URL = "http://172.28.1.1:80"
+URL = "https://procon33-practice.kosen.work"
+#URL = "http://172.28.1.1:80"
 TOKEN = "3fc3169361f5daa766a8a3e3f757aaa20de7d4c7dafa3816ee4f7de4b9c71730"
 query = "?token=" + TOKEN
 
@@ -162,15 +162,19 @@ def problem_post():
 
 if __name__ == "__main__":
     """引数の数に過不足があったら終了させる"""
+    """
     if len(sys.argv) != 2:
         sys.exit()
+    """
         
     """最終的に音声ファイルをダウンロードして結合"""
     if (sys.argv[1] == "download" or sys.argv[1] == "Download" or sys.argv[1] == "DOWNLOAD"):
         match_get()
         problem_information = problem_get()
         # 受け取る分割データ数を標準入力させる
-        file_get(chunks_post(int(input("受け取る分割データ数を入力"))))
+        #file_get(chunks_post(int(input("受け取る分割データ数を入力"))))
+        print("AIUEO:", sys.argv[2])
+        file_get(chunks_post(int(sys.argv[2])))
         cat.wav_cat()
     """分析結果のjsonファイルを提出する"""
     if (sys.argv[1] == "submit" or sys.argv[1] == "Submit" or sys.argv[1] == "SUBMIT"):
