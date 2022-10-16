@@ -271,9 +271,11 @@ Score_Type best_score = inf_score;
 void init(){
   memcpy(best_sub, problem, sizeof(problem));
   problem_wave_score = calc_score(best_sub);
-  const std::vector<int> surely_contain = Calc::find_audio();
-  contains_num = (int)surely_contain.size();
+  //const std::vector<int> surely_contain = Calc::find_audio();
+  //contains_num = (int)surely_contain.size();
+  contains_num = 0;
   std::cerr << "Surely Contains Num: " << contains_num << "\n";
+  /*
   for(const int x : surely_contain) std::cerr << x << " ";
   std::cerr << "\n";
   rep(i, contains_num){
@@ -283,6 +285,7 @@ void init(){
     best[i].len = min(problem_length, audio_length[best[i].idx]);
     used_idx |= 1ULL << (best[i].idx % half_n);
   }
+  */
   // 最初はランダムに値を入れておく
   for(int i = contains_num; i < m; i++){
     int idx = rnd(n);
