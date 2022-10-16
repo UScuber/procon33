@@ -9,7 +9,8 @@ int sep_num = 1;
 
 int main(){
     int n;
-    
+    int last_op = -1;
+
     while(true){
         puts("DOWNLOAD(1) ANALYZE(2) SUBMIT(3) CHANGE TEMP(4) SETSETP(5) EXIT(0)");
         std::cin >> n;
@@ -25,6 +26,10 @@ int main(){
                 #endif
             break;
             case ANALYZE:
+                if(ANALYZE == last_op){
+                    std::cout << "Already Analyzed\n";
+                    break;
+                }
                 #if defined(_WIN32) || defined(_WIN64)
                     system("analyze.cmd");
                 #else
@@ -52,6 +57,7 @@ int main(){
             case EXIT:
                 return 0;
         }
+        last_op = n;
     }
     return 0;
 }
