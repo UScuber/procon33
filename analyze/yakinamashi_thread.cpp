@@ -2,7 +2,7 @@
 #include "library.hpp"
 #include "temp_thread.hpp"
 
-constexpr double limit_time = 41;
+constexpr double limit_time = 41 / 12;
 
 namespace Solver {
 
@@ -43,9 +43,8 @@ void solve(){
       //temp = (t1 - t0) * p + t0;
     }
     RndInfo change;
-    if(1 || p < 0.5*0.1) rnd_create_first(change);
-    else rnd_create_second(change);
-    const Score_Type score = calc_one_changed_ans2(change);
+    rnd_create(change);
+    const Score_Type score = calc_one_changed_ans(change);
     if(awesome_score > score){
       awesome_score = score;
       best_score = score;
@@ -89,16 +88,10 @@ void solve(){
     cnt += thread_num * tasks_num;
 
     const int calc_num = thread_num * tasks_num;
-    if(spend_time - last_upd_time <= 3.0 || !rnd(8)){
-      if(p < 0.5) rep(i, calc_num) rnd_create_first(rnd_arrays[i]);
-      else rep(i, calc_num) rnd_create_second(rnd_arrays[i]);
-      //rep(i, calc_num) rnd_create(rnd_arrays[i]);
-    }else{
-      rep(i, calc_num) rnd_create2(rnd_arrays[i]);
-    }
+    rep(i, calc_num) rnd_create(rnd_arrays[i]);
     // multi thread
     #pragma omp parallel for
-    rep(i, calc_num) scores[i] = calc_one_changed_ans2(rnd_arrays[i]);
+    rep(i, calc_num) scores[i] = calc_one_changed_ans(rnd_arrays[i]);
     int best_change_idx = -1;
     Score_Type good_score = inf_score;
     rep(i, calc_num){
