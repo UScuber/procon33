@@ -257,10 +257,7 @@ inline void update_values(const RndInfo &info) noexcept{
   // update best_sub
   const Data &pre = best[info.idx];
   rep(i, problem_length){
-    best_sub[i] += arrays[pre.idx][i + pre.st];
-  }
-  rep(i, problem_length){
-    best_sub[i] -= arrays[info.nxt_idx][i + info.st];
+    best_sub[i] += arrays[pre.idx][i + pre.st] - arrays[info.nxt_idx][i + info.st];
   }
   // update info
   used_idx ^= 1ULL << (best[info.idx].idx % half_n);
