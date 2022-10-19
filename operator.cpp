@@ -26,10 +26,12 @@ int main(){
                 #endif
             break;
             case ANALYZE:
+                /*
                 if(ANALYZE == last_op){
                     std::cout << "Already Analyzed\n";
                     break;
                 }
+                */
                 #if defined(_WIN32) || defined(_WIN64)
                     system("analyze.cmd");
                 #else

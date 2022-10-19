@@ -2,7 +2,7 @@
 #include "library.hpp"
 #include "temp_thread.hpp"
 
-constexpr double limit_time = 10;
+constexpr double limit_time = 70;
 
 namespace Solver {
 

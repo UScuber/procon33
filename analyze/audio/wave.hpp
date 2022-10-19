@@ -6,7 +6,7 @@
 
 constexpr int short_max = (1 << 15) - 1;
 constexpr int default_sampling_hz = 48000;
-constexpr int analyze_change_prop = 4;
+constexpr int analyze_change_prop = 2;
 #ifdef USE_MULTI_THREAD
 constexpr int analyze_sampling_hz = 48000;
 #else

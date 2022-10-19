@@ -1,1 +1,1 @@
-constexpr int m = 6;
+constexpr int m = 20;
