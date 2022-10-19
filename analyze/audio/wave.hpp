@@ -6,11 +6,11 @@
 
 constexpr int short_max = (1 << 15) - 1;
 constexpr int default_sampling_hz = 48000;
-constexpr int analyze_change_prop = 3;
+constexpr int analyze_change_prop = 4;
 #ifdef USE_MULTI_THREAD
-constexpr int analyze_sampling_hz = 6000*8;
+constexpr int analyze_sampling_hz = 48000;
 #else
-constexpr int analyze_sampling_hz = 6000*8/analyze_change_prop;
+constexpr int analyze_sampling_hz = 48000/analyze_change_prop;
 #endif
 constexpr int default_audio_max_length = 394606;
 constexpr int analyze_audio_max_length = default_audio_max_length / (default_sampling_hz / analyze_sampling_hz);
